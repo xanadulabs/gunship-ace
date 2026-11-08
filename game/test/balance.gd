@@ -1,5 +1,5 @@
 extends RefCounted
-## Prints how fast the Hind loses armor in typical spots. Not pass/fail; a tuning aid.
+## Prints how fast the Hind loses health in typical spots. Not pass/fail; a tuning aid.
 ## Run: godot --headless --path game -- --balance
 
 const Rules = preload("res://core/rules.gd")
@@ -14,14 +14,14 @@ static func _hover(host: Node, mission: int, at: Vector3, band: int, seconds: fl
 	w.hind.place(at, 0.0)
 	w.hind.band = band
 	w.hind.lift = Rules.band_y(band)
-	var start: float = w.armor
+	var start: int = w.health
 	var t := 0.0
 	while t < seconds and w.phase == "play":
 		w._physics_process(DT)
 		t += DT
-	var lost: float = start - w.armor
+	var lost: int = start - w.health
 	w.queue_free()
-	return "%-36s lost %5.1f armor in %4.1fs (%s)" % ["m%d (%d,%d) %s" % [mission + 1, at.x, at.z, Rules.BAND_NAMES[band]], lost, t, "survived" if t >= seconds - DT else "DOWN"]
+	return "%-36s lost %d health in %4.1fs (%s)" % ["m%d (%d,%d) %s" % [mission + 1, at.x, at.z, Rules.BAND_NAMES[band]], lost, t, "survived" if t >= seconds - DT else "DOWN"]
 
 
 static func run(host: Node) -> int:

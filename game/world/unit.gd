@@ -157,11 +157,14 @@ func _drive(delta: float, world) -> void:
 	if to.length() < 1.6:
 		_next_way(world)
 		return
+	# Turn until the nose points along the road, then drive. Never slide sideways.
 	var want := Rules.yaw_to_deg(to)
 	var gap := wrapf(want - heading, -180.0, 180.0)
-	heading = wrapf(heading + clampf(gap, -TURN_RATE * delta, TURN_RATE * delta), -180.0, 180.0)
-	var slow := clampf(1.0 - absf(gap) / 90.0, 0.15, 1.0)
-	position += Rules.yaw_forward(heading) * speed * slow * delta
+	if absf(gap) > 6.0:
+		heading = wrapf(heading + clampf(gap, -TURN_RATE * delta, TURN_RATE * delta), -180.0, 180.0)
+	else:
+		heading = want
+		position += Rules.yaw_forward(heading) * speed * delta
 	if not engaged:
 		aim = heading
 
@@ -198,6 +201,7 @@ func _wander(delta: float, world) -> void:
 
 func _fight(delta: float, world) -> void:
 	var w := weapon()
+	var was_engaged := engaged
 	engaged = false
 	if w == "" or world == null or not world.hind_targetable():
 		burst_left = 0
@@ -210,6 +214,8 @@ func _fight(delta: float, world) -> void:
 		cool = maxf(cool, 0.4)
 		cool -= delta * 0.3
 		return
+	if not was_engaged:
+		cool = maxf(cool, 1.4)  # a moment to react when the Hind first comes into reach
 	engaged = true
 	var want := Rules.yaw_to_deg(Rules.flat(hind_pos - position))
 	var gap := wrapf(want - aim, -180.0, 180.0)

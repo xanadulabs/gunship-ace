@@ -1,8 +1,8 @@
 # Gunship Ace
 
-A top-down attack-helicopter game in the spirit of the early-90s strike games. You fly one Mi-24 Hind through a four-mission campaign. The rotor wash is a weapon: hover still at NAP height beside a light vehicle and it flips. Godot 4.7.1, Compatibility renderer.
+A top-down attack-helicopter game in the spirit of the early-90s strike games. You fly one Mi-24 Hind through a four-mission campaign. The rotor wash is a weapon: come down to the ground, hold still beside a jeep or a technical, and it flips. Godot 4.7.1, Compatibility renderer.
 
-Design: [MODE_BIBLE.md](MODE_BIBLE.md). Status and what is left before release: [PLAN.md](PLAN.md). Release steps: [docs/RELEASE.md](docs/RELEASE.md).
+Design, with the original minimums at the top: [MODE_BIBLE.md](MODE_BIBLE.md). Status and what is left before release: [PLAN.md](PLAN.md). Release steps: [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Play
 
@@ -10,27 +10,26 @@ Design: [MODE_BIBLE.md](MODE_BIBLE.md). Status and what is left before release: 
 ~/bin/godot --path game
 ```
 
-| Action | Keys (classic scheme) | Gamepad |
+| Action | Keys | Gamepad |
 |---|---|---|
-| Forward / back | W S, Up Down | Left stick |
-| Turn | A D, Left Right | Left stick |
-| Slide | Q E | Right stick |
-| Climb / descend | R F | RB / LB |
-| Chin gun | Space, J, Left click | A, RT |
-| Rockets | K, Right click | X, LT |
-| Guided missile | L, Middle click | Y |
+| Move forward / left / back / right | W A S D | Left stick |
+| Turn left / right | Q E | Right stick |
+| Up / down one step | R F | RB / LB |
+| Chin gun | Left click (or Space) | A, RT |
+| Rockets | Right click (or K) | X, LT |
+| Guided missile | Middle click (or L) | Y |
 | Map and objectives | Tab, M | Back |
 | Pause | Esc, P | Start |
-| Controls card | F1 | |
+| Hide the key plate | F1 | |
 | Fullscreen | F11 | |
 
-The "modern" scheme in Options swaps the A/D and Q/E pairs (A/D slide, Q/E turn). Every key can be rebound.
+These are the original design keys and they are the default. The arrow keys do not move her. Options has an alternate scheme (A/D turn, Q/E slide), and every key can be rebound.
 
 ## Check and build
 
 ```
-~/bin/godot --headless --path game -- --probe      # 222 rule, data, art and simulation checks
-~/bin/godot --headless --path game -- --balance    # armor loss per second in hot spots, for tuning
+~/bin/godot --headless --path game -- --probe      # 244 rule, data, art and simulation checks
+~/bin/godot --headless --path game -- --balance    # health loss in hot spots, for tuning
 ~/bin/godot --path game -- --shots /tmp/shots      # scripted screenshot tour of every screen
 tools/build.sh                                     # probe, export Linux/Windows/Web, self-test the export, zip
 ```

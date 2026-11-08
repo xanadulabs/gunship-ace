@@ -46,35 +46,65 @@ static func _rules() -> void:
 	var v := Vector3.ZERO
 	for i in 600:
 		v = Rules.step_velocity(v, Vector2(0, 1), 0.0, DT)
-	check(v.length() <= Rules.MAX_SPEED + 0.001 and v.length() > Rules.MAX_SPEED * 0.9, "thrust reaches but does not pass max speed")
+	check(v.length() <= Rules.MAX_SPEED + 0.001 and v.length() > Rules.MAX_SPEED * 0.9, "a held W sits on the speed cap")
+	var side := Rules.step_velocity(Vector3.ZERO, Vector2(-1, 0), 0.0, 0.5)
+	check(side.x < 0.0 and absf(side.z) < 0.001, "A moves left, not a turn")
 	for i in 600:
 		v = Rules.step_velocity(v, Vector2.ZERO, 0.0, DT)
-	check(v.length() < 0.1, "the Hind coasts to a stop")
-	var wall := [Rect2(-1, -11, 2, 2)]
+	check(v.length() < 0.1, "she stops slow but she stops")
+	var tap := Rules.shove(Vector3.ZERO, Rules.wish_dir(Vector2(0, 1), 0.0))
+	check(absf(tap.length() - Rules.SHOVE) < 0.01, "a tap is one shove")
+	check(Rules.weight(0.0, 0.0) < Rules.weight(100.0, 1.0), "a lighter Hind weighs less")
+	check(Rules.fuel_per_sec("off", 0.8) < Rules.fuel_per_sec("off", 1.0), "a lighter Hind burns less fuel")
+	var wall := [{"r": Rect2(-1, -11, 2, 2), "kind": "building"}]
+	var trees := [{"r": Rect2(-1, -11, 2, 2), "kind": "tree"}]
 	var res := Rules.slide(Vector3(0, 0, -3), Vector3(0, 0, -4), 0, wall, 100.0)
 	check(not bool(res["hit"]), "free move is not a hit")
 	res = Rules.slide(Vector3(0.5, 0, -8.5), Vector3(0.5, 0, -9.5), 0, wall, 100.0)
-	check(bool(res["hit"]), "a building stops the Hind at NAP")
+	check(bool(res["hit"]) and res["reason"] == "building", "a building stops the Hind on the ground")
+	res = Rules.slide(Vector3(0.5, 0, -8.5), Vector3(0.5, 0, -9.5), 1, trees, 100.0)
+	check(bool(res["hit"]) and res["reason"] == "tree", "a tree stops the Hind one step up")
 	res = Rules.slide(Vector3(0.5, 0, -8.5), Vector3(0.5, 0, -9.5), 2, wall, 100.0)
-	check(not bool(res["hit"]), "HIGH clears buildings")
+	check(not bool(res["hit"]), "two steps up clears trees and buildings")
 	res = Rules.slide(Vector3(0, 0, 0), Vector3(200, 0, 0), 2, [], 100.0)
-	check(bool(res["edge"]) and float(res["pos"].x) <= 100.0 - Rules.EDGE_MARGIN + 0.01, "the map edge holds")
-	check(Rules.wash_strength(0, 0.0) == 1.0, "still at NAP is full wash")
-	check(Rules.wash_strength(1, 0.0) == 0.0, "no wash at LOW")
-	check(Rules.wash_strength(0, Rules.WASH_MAX_SPEED + 1.0) == 0.0, "no wash while fast")
-	check(Rules.tip_rate("jeep", 3.0, 1.0) > Rules.tip_rate("truck", 3.0, 1.0), "a jeep tips faster than a truck")
-	check(Rules.tip_rate("truck", 6.0, 1.0) == 0.0, "a truck only tips up close")
-	check(Rules.tip_rate("tank", 1.0, 1.0) == 0.0, "a tank does not tip")
-	check(Rules.shakes("tank") and not Rules.shakes("aaa"), "tanks shake, dug-in guns do not")
-	check(Rules.can_reach("rifle", 0) and not Rules.can_reach("rifle", 2), "rifles cannot reach HIGH")
-	check(Rules.can_reach("sam", 2) and not Rules.can_reach("sam", 0), "SAMs cannot lock at NAP")
-	check(Rules.can_reach("flak", 2), "flak reaches every height")
-	check(Rules.damage_to("tank", "gun", 1.0) < 0.5 and Rules.damage_to("jeep", "gun", 1.0) == 1.0, "armor shrugs off the gun")
-	var targets := [Vector3(0, 0, -20), Vector3(15, 0, -15)]
-	check(Rules.pick_target(Vector3.ZERO, 0.0, targets, 20.0, 40.0) == 0, "aim assist picks the target on the nose")
-	check(Rules.pick_target(Vector3.ZERO, 180.0, targets, 20.0, 40.0) == -1, "nothing behind the Hind is picked")
-	var drain := Rules.FUEL_MAX / Rules.FUEL_PER_SEC
+	check(res["reason"] == "map" and float(res["pos"].x) <= 100.0 - Rules.EDGE_MARGIN + 0.01, "the map stops the Hind")
+	check(Rules.wash_mode(0, false) == "attack", "ground and still: the attack wash is on")
+	check(Rules.wash_mode(0, true) == "off", "while she is moving the attack wash is off")
+	check(Rules.wash_mode(1, false) == "wind", "one step up is wind")
+	check(Rules.wash_mode(2, false) == "off", "two steps up the wash is off")
+	check(Rules.fuel_per_sec("attack") > Rules.fuel_per_sec("off"), "the attack drain is faster")
+	check(Rules.tip_rate("jeep", 3.0) > 0.0 and Rules.tip_rate("technical", 3.0) > 0.0, "the wash flips a jeep and a technical")
+	check(Rules.tip_rate("truck", 1.0) == 0.0 and Rules.shakes("truck"), "the wash shakes a truck; a truck does not tip")
+	check(Rules.tip_rate("tank", 1.0) == 0.0, "a tank does not tip")
+	check(int(Rules.UNITS["jeep"]["hp"]) == 4 and int(Rules.UNITS["technical"]["hp"]) == 6 and int(Rules.UNITS["truck"]["hp"]) == 10, "jeep 4, technical 6, truck 10")
+	check(Rules.GUN_DAMAGE == 4, "the gun removes 4")
+	check(Rules.HEALTH_START == 8 and Rules.ENEMY_SHOT == 2, "health starts at 8; a shot removes 2")
+	check(float(Rules.ENEMY_WEAPONS["mg"]["range"]) == 10.0 and float(Rules.ENEMY_WEAPONS["hmg"]["range"]) == 10.0, "a vehicle shoots inside 10 m")
+	check(Rules.can_reach("rifle", 0) and not Rules.can_reach("rifle", 2), "rifles cannot reach two steps up")
+	check(Rules.can_reach("sam", 2) and not Rules.can_reach("sam", 0), "SAMs cannot lock on the ground")
+	check(Rules.damage_to("tank", "gun", 4.0) < 4.0 and Rules.damage_to("jeep", "gun", 4.0) == 4.0, "armor shrugs off the gun")
+	var targets := [Vector3(0, 0, -20), Vector3(-15, 0, -9)]
+	var g := Rules.gun_slew(Vector3.ZERO, 0.0, targets, [], 0)
+	check(int(g["index"]) == 0 and absf(float(g["angle"])) < 1.0, "the gun picks the target on the nose")
+	g = Rules.gun_slew(Vector3.ZERO, 0.0, [Vector3(-15, 0, -9)], [], 0)
+	check(int(g["index"]) == 0 and absf(float(g["angle"])) > Rules.GUN_SWEET, "out to 60 degrees the gun slews")
+	check(Rules.gun_wait(50.0) > Rules.gun_wait(10.0), "out to 60 the gun is slower")
+	g = Rules.gun_slew(Vector3.ZERO, 0.0, [Vector3(0, 0, 20)], [], 0)
+	check(int(g["index"]) == -1 and g["notice"] == "The shot misses.", "past 60 degrees the shot misses")
+	g = Rules.gun_slew(Vector3.ZERO, 0.0, [Vector3(0, 0, -20)], [Rect2(-2, -12, 4, 2)], 0)
+	check(g["notice"] == "A building stops the shot.", "a building stops the shot")
+	check(Rules.height_line(1) == "Height is one step up." and Rules.wash_line("wind") == "Wind is on.", "the plate sentences")
+	check(Rules.stop_line("tree") == "A tree stops the Hind." and Rules.end_line("landed") == "Landed.", "the stop and end sentences")
+	var drain := Rules.FUEL_START / Rules.FUEL_PER_SEC
 	check(drain >= 150.0 and drain <= 300.0, "a full tank lasts two and a half to five minutes")
+	check(Controls.key_name("thrust_fwd") == "W" and Controls.key_name("strafe_left") == "A" and Controls.key_name("turn_left") == "Q", "default keys: W forward, A left, Q turns")
+	var arrows := false
+	for action in ["thrust_fwd", "thrust_back", "turn_left", "turn_right", "strafe_left", "strafe_right"]:
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventKey and ev.physical_keycode in [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]:
+				arrows = true
+	check(not arrows, "the arrow keys do not move her")
+	check(Controls.key_name("fire_gun") == "Left click", "left click fires")
 
 
 # ------------------------------------------------------------------ data
@@ -165,15 +195,15 @@ static func _sim(host: Node) -> void:
 		var w = _world(host, i)
 		await host.get_tree().process_frame
 		check(w.units.size() > 5 and w.trees.size() > 10, "mission %d builds" % (i + 1))
-		w.armor = 1.0e9
+		w.invincible = true
 		_step(w, 20.0)
 		check(w.phase == "play", "mission %d runs idle" % (i + 1))
 		w.queue_free()
 	await host.get_tree().process_frame
 
-	# The wash flips a jeep: still at NAP right next to it.
+	# The wash flips a jeep: still on the ground right next to it.
 	var w = _world(host, 0)
-	w.armor = 1.0e9
+	w.invincible = true
 	var jeep = _unit(w, "jeep", "patrol")
 	jeep.speed = 0.0
 	w.hind.place(jeep.position + Vector3(2.5, 0, 0), 0.0)
@@ -254,7 +284,7 @@ static func _sim(host: Node) -> void:
 
 	# Rescue: winch one crew member and land them.
 	w = _world(host, 2)
-	w.armor = 1.0e9
+	w.invincible = true
 	var c: Dictionary = w.crew[0]
 	w.hind.place(c["at"], 0.0)
 	_step(w, Rules.WINCH_SEC + 0.3)
@@ -263,7 +293,7 @@ static func _sim(host: Node) -> void:
 	_step(w, 1.0)
 	check(w.delivered == 1 and w.aboard == 0, "landing at the LZ delivers crew")
 
-	# SAMs do not fire at NAP; they do at HIGH.
+	# SAMs do not fire at the ground; they do two steps up.
 	var sam = _unit(w, "sam")
 	w.hind.place(sam.position + Vector3(0, 0, 26), 0.0)
 	w.enemy_shots_clear()
@@ -272,7 +302,7 @@ static func _sim(host: Node) -> void:
 	for s in w.enemy_shots:
 		if s["weapon"] == "sam":
 			sams += 1
-	check(sams == 0, "no SAM launch at NAP")
+	check(sams == 0, "no SAM launch at the ground")
 	w.hind.band = 2
 	w.hind.lift = Rules.band_y(2)
 	_step(w, 7.0)
@@ -280,35 +310,64 @@ static func _sim(host: Node) -> void:
 	for s in w.enemy_shots:
 		if s["weapon"] == "sam":
 			launched = true
-	check(launched or w.armor < 1.0e9, "a SAM launches at HIGH")
+	check(launched or w.hits_taken > 0, "a SAM launches two steps up")
 
-	# Death: losing all armor costs a life and respawns at the LZ with crew dropped.
-	w.armor = 1.0
+	# Health at zero: Hind down, a life is lost, she respawns at the LZ with crew dropped.
+	w.invincible = false
+	w.health = Rules.ENEMY_SHOT
 	w.hind.band = 0
 	w.hind.lift = 0.0
 	var lives_before: int = w.lives
-	w._hind_hit(10.0, "cannon")
-	_step(w, Rules.AUTOROTATE_SEC + Rules.RESPAWN_SEC + 0.5)
+	w._hind_hit(1.0, "cannon")
+	check(w.health == 0 and w.phase == "dead", "a shot at health 2 brings her down")
+	_step(w, Rules.LAND_SEC + Rules.RESPAWN_SEC + 0.5)
 	check(w.lives == lives_before - 1 and w.phase == "play" and w.hind.alive, "a crash costs a life and respawns")
-	check(w.armor == Rules.ARMOR_MAX and w.hind.pos.distance_to(w.lz) < 1.0, "respawn is at the LZ with full armor")
+	check(w.health == Rules.HEALTH_START and w.hind.pos.distance_to(w.lz) < 1.0, "respawn is at the LZ with health 8")
+
+	# Fuel at zero: she autorotates and lands. Empty fuel does not destroy the Hind.
+	w.invincible = true
+	w.hind.band = 2
+	w.hind.lift = Rules.band_y(2)
+	w.fuel = 0.01
+	lives_before = w.lives
+	_step(w, 0.1)
+	check(w.phase == "landing", "empty fuel starts the landing")
+	_step(w, Rules.LAND_SEC * 2.0 + 0.5)
+	check(w.hind.alive and w.lives == lives_before and w.hind.lift < 0.01, "she lands; the Hind is not destroyed")
+	check(w.stats()["end"] == "landed", "the end plate says Landed.")
 	w.queue_free()
 
 	# Convoy: left alone, the trucks get through and the mission is lost.
 	w = _world(host, 1)
-	w.armor = 1.0e9
+	w.invincible = true
 	w.hind.place(w.lz, 0.0)
 	_step(w, 160.0)
 	check(w.phase == "lost", "an unstopped convoy fails mission 2 (phase %s)" % w.phase)
 	w.queue_free()
 
-	# A truck in the wash tips over if the Hind holds the hover long enough.
+	# The wash shakes a truck. A truck does not tip.
 	w = _world(host, 1)
-	w.armor = 1.0e9
+	w.invincible = true
 	_step(w, 9.0)
 	var truck = _unit(w, "truck", "convoy")
 	truck.speed = 0.0
 	w.hind.place(truck.position + Vector3(2.5, 0, 0), 0.0)
 	_step(w, 4.0)
-	check(truck.flipped, "a held hover tips a truck")
+	check(not truck.flipped and truck.state == "alive" and truck.tip > 0.0, "the wash shakes a truck and does not tip it")
+	w.queue_free()
+
+	# A vehicle turns until the nose points along the road, then drives. It never slides.
+	w = _world(host, 0)
+	w.invincible = true
+	w.hind.place(w.lz, 0.0)
+	var car = _unit(w, "jeep", "patrol")
+	var sideways := 0
+	for k in 600:
+		var before: Vector3 = car.position
+		w._physics_process(DT)
+		var moved: Vector3 = Rules.flat(car.position - before)
+		if moved.length() > 0.001 and moved.normalized().dot(Rules.yaw_forward(car.heading)) < 0.99:
+			sideways += 1
+	check(sideways == 0, "vehicles do not move sideways")
 	w.queue_free()
 	await host.get_tree().process_frame

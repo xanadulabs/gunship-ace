@@ -11,6 +11,8 @@
 | 4 A game | **Done.** Four missions on 220–300 m maps, eight enemy types, rescue, lives, title, briefing, map, saved progress |
 | 5 Release | **Builds ready** via `tools/build.sh`. **Left for you:** the hand checks in [docs/RELEASE.md](docs/RELEASE.md) (Windows and web were exported but not run here), playtests, the name check, and the itch.io upload, which needs your account. |
 
+**v1.1.0 (same day):** the original v0.1 rules are the floor again. The original keys are the default and the arrow keys are off. The wash attacks only on the ground and only while still. Trucks shake and never tip. Health is 8 and a shot removes 2. The original gun slew rules and point values are back, empty fuel lands safely, and the plates use the original sentences. The weight link from "Next slice" is in. The probe checks every minimum (244 checks).
+
 Design as built: [MODE_BIBLE.md](MODE_BIBLE.md). The review below is kept as written for the record.
 
 ---

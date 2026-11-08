@@ -15,7 +15,9 @@ var mission_index := 0
 var mission: Dictionary = {}
 var half := 100.0
 var attract := false          # title screen backdrop: no Hind, no HUD, slow camera tour
-var autopilot := {}           # probe and screenshot runs: {"wish": Vector2, "turn": float, "fire": String}
+var autopilot := {}
+var invincible := false       # tests and screenshots only
+var hits_taken := 0           # probe and screenshot runs: {"wish": Vector2, "turn": float, "fire": String}
 
 var ground
 var hind
@@ -34,8 +36,8 @@ var _blockers_dirty := true
 var lz := Vector3.ZERO
 var lz_yaw := 0.0
 
-var armor := Rules.ARMOR_MAX
-var fuel := Rules.FUEL_MAX
+var health := Rules.HEALTH_START
+var fuel := Rules.FUEL_START
 var ammo := {}
 var lives := Rules.LIVES
 var aboard := 0
@@ -45,6 +47,8 @@ var dead_left := 0.0
 var end_left := 0.0
 var fail_reason := ""
 var cooldown := {"gun": 0.0, "rocket": 0.0, "atgm": 0.0}
+var gun_left := 0.0
+var gun_pending := false
 var rocket_side := 1.0
 var winch_t := 0.0
 var unload_t := 0.0
@@ -165,7 +169,7 @@ func _scatter() -> void:
 		node.position = Vector3(p.x, 0, p.y) + Rules.SPRITE_LIFT
 		add_child(node)
 		trees.append({"node": node, "at": Vector3(p.x, 0, p.y), "phase": rng.randf() * 3.0})
-		tree_rects.append(Rect2(p.x - 1.8, p.y - 1.8, 3.6, 3.6))
+		tree_rects.append({"r": Rect2(p.x - 1.4, p.y - 1.4, 2.8, 2.8), "kind": "tree"})
 		keep_out.append([p, 4.5])
 		placed += 1
 	placed = 0
@@ -246,15 +250,14 @@ func get_blockers() -> Array:
 		blockers = tree_rects.duplicate()
 		for u in units:
 			if u.is_structure() and u.is_target():
-				blockers.append(u.block_rect())
+				blockers.append({"r": u.block_rect(), "kind": "building"})
 		_blockers_dirty = false
 	return blockers
 
 
 func wash_strength() -> float:
-	if not hind_targetable():
-		return 0.0
-	return Rules.wash_strength(hind.band, hind.speed())
+	## 1 while the attack wash is on, else 0.
+	return 1.0 if wash_mode() == "attack" else 0.0
 
 
 func current_objective() -> Dictionary:
@@ -270,7 +273,7 @@ func _physics_process(delta: float) -> void:
 	time += delta if phase == "play" and not attract else 0.0
 	if attract:
 		_attract(delta)
-	elif phase == "play" or phase == "dead":
+	elif phase == "play" or phase == "dead" or phase == "landing":
 		_player(delta)
 	for u in units:
 		u.tick(delta, self)
@@ -290,7 +293,7 @@ func _process(delta: float) -> void:
 	_sway(delta)
 	_camera(delta)
 	if not attract:
-		var damaged: bool = armor < Rules.ARMOR_MAX * 0.4
+		var damaged: bool = health <= Rules.ENEMY_SHOT
 		hind.paint(delta, camera.global_transform.basis, wash_strength(), damaged)
 		if damaged and hind.alive:
 			_smoke_t -= delta
@@ -314,10 +317,15 @@ func _attract(delta: float) -> void:
 
 
 func _player(delta: float) -> void:
-	if phase == "dead":
+	if phase == "dead" or phase == "landing":
 		if hind.falling:
 			if hind.fall(delta):
-				_crash()
+				if hind.crashing:
+					_crash()
+				else:
+					_landed()
+			return
+		if phase == "landing":
 			return
 		dead_left -= delta
 		if dead_left <= 0.0:
@@ -325,17 +333,31 @@ func _player(delta: float) -> void:
 				_respawn_hind()
 				phase = "play"
 			else:
-				_lose("The Hind is lost.")
+				_lose("Hind down. No lives left.")
 		return
 	for k in cooldown.keys():
 		cooldown[k] = maxf(0.0, cooldown[k] - delta)
+	_gun_tick(delta)
 	var wish := Vector2.ZERO
 	var turn := 0.0
 	var fire := ""
+	var w := weight()
 	if autopilot.is_empty():
 		wish.y = Input.get_axis("thrust_back", "thrust_fwd")
 		wish.x = Input.get_axis("strafe_left", "strafe_right")
 		turn = Input.get_axis("turn_right", "turn_left")
+		# A tap is one shove.
+		var tap := Vector2.ZERO
+		if Input.is_action_just_pressed("thrust_fwd"):
+			tap.y += 1.0
+		if Input.is_action_just_pressed("thrust_back"):
+			tap.y -= 1.0
+		if Input.is_action_just_pressed("strafe_right"):
+			tap.x += 1.0
+		if Input.is_action_just_pressed("strafe_left"):
+			tap.x -= 1.0
+		if tap != Vector2.ZERO:
+			hind.shove(tap, w)
 		if Input.is_action_just_pressed("climb"):
 			_change_band(1)
 		if Input.is_action_just_pressed("descend"):
@@ -350,34 +372,123 @@ func _player(delta: float) -> void:
 		wish = autopilot.get("wish", Vector2.ZERO)
 		turn = float(autopilot.get("turn", 0.0))
 		fire = str(autopilot.get("fire", ""))
-	var res: Dictionary = hind.fly(delta, wish, turn, get_blockers(), half)
-	if bool(res["edge"]) and wish.length() > 0.1:
-		_say("Edge of the area. Turn back.", "info", 2.0)
+	var res: Dictionary = hind.fly(delta, wish, turn, get_blockers(), half, w)
+	if bool(res["hit"]) and str(res["reason"]) != "":
+		_say(Rules.stop_line(str(res["reason"])), "info", 1.4)
 	if fire != "":
 		_fire(fire)
-	fuel = maxf(0.0, fuel - Rules.fuel_drain(wash_strength() > 0.1) * delta)
+	fuel = maxf(0.0, fuel - Rules.fuel_per_sec(wash_mode(), w) * delta)
 	if fuel <= 0.0:
-		_say("Out of fuel!", "alert")
-		_go_down()
+		_land_empty()
+
+
+func weight() -> float:
+	var full := 0.0
+	var now := 0.0
+	for k in Rules.WEAPONS.keys():
+		full += float(Rules.WEAPONS[k]["ammo"])
+		now += float(ammo.get(k, 0))
+	return Rules.weight(fuel, now / maxf(full, 1.0))
+
+
+func wash_mode() -> String:
+	if not hind_targetable():
+		return "off"
+	return Rules.wash_mode(hind.band, hind.moving())
 
 
 func _change_band(step: int) -> void:
 	var next: int = hind.band + step
 	if next < 0:
-		_say("Already at NAP height.", "info", 1.5)
+		_say(Rules.stop_line("ground"), "info", 1.0)
 		return
 	if next >= Rules.BANDS:
-		_say("Already at the ceiling.", "info", 1.5)
+		_say(Rules.stop_line("top"), "info", 1.0)
 		return
-	if not hind.can_climb_to(next, get_blockers()):
-		_say("Something is in the way below.", "info", 1.5)
+	var below: String = hind.blocker_below(next, get_blockers())
+	if step < 0 and below != "":
+		_say(Rules.stop_line(below), "info", 1.0)
 		return
 	hind.band = next
 
 
 # ================================================================== weapons
 
+func _gun_targets() -> Dictionary:
+	var targets: Array = []
+	var bodies: Array = []
+	for u in units:
+		if u.is_target() and u.state != "waiting":
+			targets.append(u.position)
+			bodies.append(u)
+	var rects: Array = []
+	for b in get_blockers():
+		if b["kind"] == "building":
+			rects.append(b["r"])
+	var aim := Rules.gun_slew(hind.pos, hind.yaw, targets, rects, hind.band)
+	aim["body"] = bodies[aim["index"]] if int(aim["index"]) >= 0 else null
+	return aim
+
+
+func _fire_gun() -> void:
+	## Inside 20 degrees of the nose the gun slews and fires. Out to 60 it is slower.
+	## Past that the shot misses. The screen says The gun is turning. while it slews.
+	if gun_left > 0.0:
+		if gun_pending:
+			_say(Rules.shot_line("turning"), "info", 0.6)
+		return
+	if int(ammo["gun"]) <= 0:
+		_say("Out of gun ammo.", "alert", 1.2)
+		gun_left = 0.4
+		return
+	var aim := _gun_targets()
+	if str(aim["notice"]) != "":
+		_say(str(aim["notice"]), "info", 0.8)
+		gun_left = Rules.GUN_WAIT_NEAR
+		return
+	var angle := float(aim["angle"])
+	gun_left = Rules.gun_wait(angle)
+	if absf(angle) <= Rules.GUN_SWEET:
+		_shoot_gun(aim["body"])
+		return
+	gun_pending = true
+	_say(Rules.shot_line("turning"), "info", 0.6)
+
+
+func _gun_tick(delta: float) -> void:
+	if gun_left <= 0.0:
+		return
+	gun_left -= delta
+	if gun_left > 0.0 or not gun_pending:
+		return
+	gun_pending = false
+	var aim := _gun_targets()
+	if str(aim["notice"]) != "":
+		_say(str(aim["notice"]), "info", 0.8)
+		return
+	_shoot_gun(aim["body"])
+	gun_left = Rules.gun_wait(float(aim["angle"]))
+
+
+func _shoot_gun(body) -> void:
+	ammo["gun"] = int(ammo["gun"]) - 1
+	var start: Vector3 = hind.aim_point() + Rules.yaw_forward(hind.yaw) * 1.8 - Vector3(0, 0.6, 0)
+	var aim_at: Vector3 = body.position + Vector3(0, 0.9, 0)
+	var node := Art.sprite("round.png", false, true)
+	node.position = start + Rules.SPRITE_LIFT
+	add_child(node)
+	shots.append({
+		"kind": "gun", "pos": start, "vel": (aim_at - start).normalized() * Rules.GUN_SPEED, "node": node,
+		"life": start.distance_to(aim_at) / Rules.GUN_SPEED * 2.0 + 0.2, "target": body,
+	})
+	_effect("flash", start, 0.06, 1, 0.0)
+	Sfx.play("gun", -4.0, randf_range(0.95, 1.08))
+
+
 func _fire(weapon: String) -> void:
+	if weapon == "gun":
+		_fire_gun()
+		return
 	if cooldown[weapon] > 0.0:
 		return
 	var info: Dictionary = Rules.WEAPONS[weapon]
@@ -410,10 +521,7 @@ func _fire(weapon: String) -> void:
 		rocket_side = -rocket_side
 		cooldown[weapon] = float(info["rate"]) * (0.25 if rocket_side < 0.0 else 1.0)
 	var dirv := (aim_at - start).normalized()
-	if weapon == "gun":
-		var spread := 0.025
-		dirv = (dirv + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
-	var pic: String = {"gun": "round.png", "rocket": "rocket.png", "atgm": "missile.png"}[weapon]
+	var pic: String = {"rocket": "rocket.png", "atgm": "missile.png"}[weapon]
 	var node := Art.sprite(pic, false, true)
 	node.position = start + Rules.SPRITE_LIFT
 	add_child(node)
@@ -424,8 +532,6 @@ func _fire(weapon: String) -> void:
 	})
 	_effect("flash", start, 0.06, 1, 0.0)
 	match weapon:
-		"gun":
-			Sfx.play("gun", -6.0, randf_range(0.95, 1.08))
 		"rocket":
 			Sfx.play("rocket", -4.0, randf_range(0.95, 1.05))
 		"atgm":
@@ -437,7 +543,10 @@ func _tick_shots(delta: float) -> void:
 	for s in shots:
 		var pos: Vector3 = s["pos"]
 		var vel: Vector3 = s["vel"]
-		if s["kind"] == "atgm" and s["target"] != null and s["target"].is_target():
+		if s["kind"] == "gun" and s["target"] != null and s["target"].is_target():
+			vel = (s["target"].position + Vector3(0, 0.9, 0) - pos).normalized() * vel.length()
+			s["vel"] = vel
+		elif s["kind"] == "atgm" and s["target"] != null and s["target"].is_target():
 			var want: Vector3 = (s["target"].position + Vector3(0, 0.9, 0) - pos).normalized()
 			var turn := float(Rules.WEAPONS["atgm"]["turn"]) * delta
 			vel = vel.normalized().slerp(want, clampf(turn, 0.0, 1.0)).normalized() * vel.length()
@@ -450,6 +559,8 @@ func _tick_shots(delta: float) -> void:
 		var hit = null
 		for u in units:
 			if not u.is_target() or u.state == "waiting":
+				continue
+			if s["kind"] == "gun" and s["target"] != null and u != s["target"]:
 				continue
 			if Rules.flat(next - u.position).length() < u.radius() and next.y < 4.0:
 				hit = u
@@ -469,6 +580,16 @@ func _tick_shots(delta: float) -> void:
 func _impact(s: Dictionary, at: Vector3, hit) -> void:
 	var kind: String = s["kind"]
 	var info: Dictionary = Rules.WEAPONS[kind]
+	if kind == "gun":
+		if hit != null:
+			var vehicle: bool = hit.kind in ["jeep", "technical", "truck"]
+			hit.hurt(Rules.damage_to(hit.kind, "gun", float(Rules.GUN_DAMAGE)), self, "gun")
+			_effect("flash", at, 0.05, 1, 0.0)
+			if vehicle:
+				_say(Rules.shot_line("destroyed" if hit.state == "dead" else "hit"), "info")
+		else:
+			_effect("puff", Vector3(at.x, 0.3, at.z), 0.35, 3, 0.6)
+		return
 	if kind == "rocket":
 		_boom(Vector3(at.x, 0.6, at.z), false)
 		ground.scorch(at, 1.2)
@@ -508,12 +629,12 @@ func enemy_fire(u, weapon: String) -> void:
 	var reach := float(winfo["range"]) * 1.25 / float(winfo["speed"])
 	enemy_shots.append({
 		"weapon": weapon, "pos": from, "vel": dirv * float(winfo["speed"]), "node": node,
-		"life": Rules.SAM_LIFE if weapon == "sam" else reach, "damage": float(winfo["damage"]),
+		"life": Rules.SAM_LIFE if weapon == "sam" else reach, "damage": float(Rules.ENEMY_SHOT),
 	})
 	match weapon:
 		"sam":
 			Sfx.play("sam", -2.0)
-			_say("MISSILE LAUNCH! Drop to NAP or turn hard.", "alert", 2.0)
+			_say("Missile launch. Get down to the ground or turn hard.", "alert", 2.0)
 		"cannon":
 			Sfx.play("boom_small", -8.0, 1.4)
 		_:
@@ -559,17 +680,21 @@ func _tick_enemy_shots(delta: float) -> void:
 		Sfx.play("warn", -8.0, 1.0, 0.45)
 
 
-func _hind_hit(damage: float, weapon: String) -> void:
-	armor = maxf(0.0, armor - damage)
-	shake = maxf(shake, 0.25 if damage < 10.0 else 0.7)
+func _hind_hit(_damage: float, weapon: String) -> void:
+	## An enemy shot removes 2. At 0 the Hind crashes.
+	hits_taken += 1
+	if invincible:
+		return
+	health = maxi(0, health - Rules.ENEMY_SHOT)
+	shake = maxf(shake, 0.35 if weapon != "sam" else 0.7)
 	Sfx.play("hit", -6.0, randf_range(0.9, 1.1), 0.06)
 	if weapon == "sam" or weapon == "cannon":
 		_boom(hind.aim_point(), false)
-	if armor <= 0.0:
-		_say("The Hind is going down!", "alert")
+	if health <= 0:
+		_say(Rules.end_line("down"), "alert")
 		_go_down()
-	elif armor < 30.0:
-		_say("Armor critical! Find a repair crate.", "alert", 3.0)
+	else:
+		_say("Hit.", "alert")
 
 
 # ================================================================== wash, pickups, crew
@@ -584,7 +709,7 @@ func _wash(delta: float) -> void:
 		var d: float = Rules.flat(u.position - hind.pos).length()
 		if d > Rules.WASH_RADIUS:
 			continue
-		var rate := Rules.tip_rate(u.kind, d, strength)
+		var rate := Rules.tip_rate(u.kind, d)
 		if rate > 0.0:
 			if u.wash(rate, delta):
 				Sfx.play("flip", -2.0)
@@ -603,7 +728,7 @@ func _pickups_and_crew(delta: float) -> void:
 				continue
 			if Rules.flat(p["at"] - hind.pos).length() < Rules.PICKUP_RADIUS:
 				_take(p)
-	var slow: bool = hind.band == 0 and hind.speed() < Rules.WINCH_MAX_SPEED
+	var slow: bool = hind.band == 0 and not hind.moving()
 	var near_crew = null
 	if slow and aboard < Rules.CREW_CAPACITY:
 		for c in crew:
@@ -651,11 +776,11 @@ func _take(p: Dictionary) -> void:
 	Sfx.play("pickup", -3.0)
 	match p["kind"]:
 		"fuel":
-			fuel = minf(Rules.FUEL_MAX, fuel + Rules.PICKUP_FUEL)
+			fuel = minf(Rules.FUEL_START, fuel + Rules.PICKUP_FUEL)
 			_say("Fuel +%d" % int(Rules.PICKUP_FUEL), "good")
 		"armor":
-			armor = minf(Rules.ARMOR_MAX, armor + Rules.PICKUP_ARMOR)
-			_say("Armor repaired +%d" % int(Rules.PICKUP_ARMOR), "good")
+			health = mini(Rules.HEALTH_START, health + Rules.PICKUP_HEALTH)
+			_say("Health +%d" % Rules.PICKUP_HEALTH, "good")
 		"ammo":
 			for w in Rules.PICKUP_AMMO.keys():
 				ammo[w] = mini(int(Rules.WEAPONS[w]["ammo"]), int(ammo[w]) + int(Rules.PICKUP_AMMO[w]))
@@ -756,7 +881,7 @@ func _update_objectives() -> void:
 				o["done"] = false
 				if others_done and phase == "play" and hind.alive:
 					o["progress"] = "Land on the pad"
-					var slow: bool = hind.band == 0 and hind.speed() < Rules.WINCH_MAX_SPEED
+					var slow: bool = hind.band == 0 and not hind.moving()
 					if slow and Rules.flat(lz - hind.pos).length() < Rules.LZ_RADIUS and aboard == 0:
 						land_t += 1.0 / 60.0
 						if land_t > 1.0:
@@ -788,7 +913,7 @@ func _win() -> void:
 	phase = "won"
 	end_left = 2.5
 	Sfx.play("objective", 0.0, 1.2)
-	_say("MISSION COMPLETE", "good", 3.0)
+	_say(Rules.end_line("clear"), "good", 3.0)
 
 
 func _lose(reason: String) -> void:
@@ -812,17 +937,45 @@ func stats() -> Dictionary:
 	return {
 		"mission": mission_index, "name": mission["name"], "won": phase == "won", "reason": fail_reason,
 		"time": time, "kills": kills, "flips": flips, "crew": delivered, "lives": lives, "score": score,
+		"end": _end_key(),
 	}
+
+
+func _end_key() -> String:
+	if phase == "won":
+		return "clear"
+	if fail_reason.begins_with("Landed"):
+		return "landed"
+	if fail_reason.begins_with("Hind down"):
+		return "down"
+	return ""
 
 
 # ================================================================== death and respawn
 
 func _go_down() -> void:
+	## Health at zero: she crashes. Hind down.
 	if phase != "play":
 		return
 	phase = "dead"
-	hind.start_fall()
+	hind.start_fall(true)
 	Sfx.rotor(false)
+
+
+func _land_empty() -> void:
+	## Fuel at zero: she autorotates and lands. Empty fuel does not destroy the Hind.
+	if phase != "play":
+		return
+	phase = "landing"
+	hind.start_fall(false)
+	_say(Rules.end_line("landing"), "alert")
+
+
+func _landed() -> void:
+	hind.falling = false
+	Sfx.rotor(false)
+	_say(Rules.end_line("landed"), "alert")
+	_lose("Landed. The fuel ran out.")
 
 
 func _crash() -> void:
@@ -846,13 +999,13 @@ func _crash() -> void:
 			dropped += 1
 	aboard = 0
 	if lives > 0:
-		_say("Hind down. %d %s left." % [lives, "life" if lives == 1 else "lives"], "alert", 2.5)
+		_say("Hind down. %d %s left." % [lives, "life" if lives == 1 else "lives"], "alert")
 
 
 func _respawn_hind() -> void:
 	hind.place(lz, lz_yaw)
-	armor = Rules.ARMOR_MAX
-	fuel = Rules.FUEL_MAX
+	health = Rules.HEALTH_START
+	fuel = Rules.FUEL_START
 	ammo = {}
 	for w in Rules.WEAPONS.keys():
 		ammo[w] = int(Rules.WEAPONS[w]["ammo"])

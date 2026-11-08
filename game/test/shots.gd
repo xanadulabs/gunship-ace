@@ -36,7 +36,7 @@ func _world():
 
 
 func _tour() -> void:
-	Settings.seen_help = false
+	Settings.show_keys = true
 	Game.title()
 	await _wait(2.0)
 	await _shot("title")
@@ -46,9 +46,9 @@ func _tour() -> void:
 	Game.play(0)
 	await _wait(1.5)
 	await _shot("m1_start")
-	Game.current.hud.help.visible = false
+	Game.current.hud.left.visible = true
 	var w = _world()
-	w.armor = 1.0e9
+	w.invincible = true
 	w.autopilot = {"wish": Vector2(0, 1)}
 	await _wait(2.5)
 	await _shot("m1_flying")
@@ -91,7 +91,7 @@ func _tour() -> void:
 	Game.play(2)
 	await _wait(1.0)
 	w = _world()
-	w.armor = 1.0e9
+	w.invincible = true
 	var sam = null
 	for u in w.units:
 		if u.kind == "sam":
@@ -108,18 +108,18 @@ func _tour() -> void:
 	Game.play(3)
 	await _wait(1.0)
 	w = _world()
-	w.armor = 1.0e9
+	w.invincible = true
 	w.hind.place(Vector3(0, 0, -95), 180.0)
 	w.hind.band = 1
 	await _wait(2.5)
 	await _shot("m4_compound")
-	w.armor = 30.0
+	w.health = 2
 	await _wait(1.0)
 	await _shot("m4_damaged")
 	Game.play(1)
 	await _wait(14.0)
 	w = _world()
-	w.armor = 1.0e9
+	w.invincible = true
 	var truck = null
 	for u in w.units:
 		if u.kind == "truck" and u.is_active():
@@ -130,7 +130,7 @@ func _tour() -> void:
 		w.hind.band = 1
 	await _wait(1.0)
 	await _shot("m2_convoy")
-	Game.result({"mission": 0, "name": "Dust Off", "won": true, "reason": "", "time": 312.0, "kills": 14, "flips": 4, "crew": 0, "lives": 2, "score": 6420})
+	Game.result({"mission": 0, "name": "Dust Off", "won": true, "reason": "", "time": 312.0, "kills": 14, "flips": 4, "crew": 0, "lives": 2, "score": 6420, "dry_run": true})
 	await _wait(0.5)
 	await _shot("result")
 	Game.title()

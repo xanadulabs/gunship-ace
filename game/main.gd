@@ -1,7 +1,7 @@
 extends Node
 ## Entry point. Plain launch goes to the title screen.
 ## Dev flags after "--":  --probe (headless rule and simulation check)
-##                        --balance (armor loss in typical spots)
+##                        --balance (health loss in typical spots)
 ##                        --licenses <file> (write Godot notices for a build)
 ##                        --shots <dir> (scripted screenshot tour)
 

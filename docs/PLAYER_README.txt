@@ -1,37 +1,35 @@
-GUNSHIP ACE  v1.0.0
-Fly low. Flip trucks. Bring the crews home.
+GUNSHIP ACE  v1.1.0
+Fly low. Flip jeeps. Bring the crews home.
 
 A top-down attack-helicopter game. You fly a Mi-24 Hind across four missions:
 knock out radar and AA, stop a supply convoy, rescue downed crew, and take the
-militia command post. The Hind's rotor wash is a weapon: hover still at NAP
-height beside a light vehicle and the downwash flips it.
+militia command post. The Hind's rotor wash is a weapon: come down to the
+ground, hold still beside a jeep or a technical, and the downwash flips it.
 
-CONTROLS (classic scheme, change in Options)
-  W / Up        forward            S / Down      back
-  A / Left      turn left          D / Right     turn right
-  Q / E         slide left / right
-  R             climb              F             descend
-  Space / J / Left click     chin gun
-  K / Right click            rockets
-  L / Middle click           guided missile
-  Tab / M       map and objectives
-  Esc / P       pause              F1            controls card
-  F11           fullscreen
+KEYS
+  W moves forward.     A moves left.     S moves back.     D moves right.
+  Q turns left.        E turns right.
+  R goes up.           F goes down.
+  Left click fires.    Right click fires rockets.    Middle click fires a missile.
+  Tab shows the map.   Esc pauses.   F1 hides the key plate.   F11 fullscreen.
 
-  Gamepad: left stick flies, RB/LB climb/descend, A or RT gun, X or LT rockets,
-  Y missile, Start pause, Back map.
+  Gamepad: left stick moves, right stick turns, RB/LB up and down,
+  A or RT gun, X or LT rockets, Y missile, Start pause, Back map.
 
 HEIGHTS
-  NAP   rotor wash works, you can winch crew and land, everything can hit you
-  LOW   over pickups, still under small-arms fire
-  HIGH  clear of trees and buildings and out of rifle range, but SAMs and flak
-        can reach you. SAMs cannot lock on at NAP.
+  Ground          The wash attacks while you are still. Everything can hit you.
+  One step up     Wind. Small arms and flak still reach you.
+  Two steps up    Clear of trees and buildings, out of rifle reach.
+                  Flak and SAMs still reach you. A SAM cannot lock on the ground.
 
-TIPS
-  Fuel is short. Red drums refuel, green crates reload, white crates repair.
-  Some buildings hide supplies. Shoot them.
-  The chin gun barely scratches tanks and ZSUs. Use rockets and missiles.
-  Carry up to six crew. Settle on the H pad to drop them off.
+HEALTH AND FUEL
+  Health starts at 8. Every enemy shot removes 2.
+  Fuel at zero: the Hind autorotates and lands. Red drums refuel,
+  green crates reload, white crates repair.
+
+THE GUN
+  Inside 20 degrees of the nose it fires fast. Out to 60 it turns first.
+  Past that, the shot misses.
 
 Progress and settings are saved automatically.
 Licenses for the engine and font are in THIRD_PARTY.txt and FONT_LICENSE_OFL.txt.

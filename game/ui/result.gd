@@ -32,6 +32,11 @@ func _ready() -> void:
 	var t := UI.label(head, 64, Rules.GOOD if won else Rules.ALERT, true)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
+	var end_text := Rules.end_line(str(stats.get("end", "")))
+	if end_text != "":
+		var e := UI.label(end_text, 40, Rules.PAPER, true)
+		e.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(e)
 	var name_l := UI.label(str(stats["name"]), 28, UI.ACCENT)
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(name_l)
@@ -66,5 +71,15 @@ func _ready() -> void:
 	h.add_child(UI.button("Title", Game.title))
 	if first == null:
 		first = retry
+	var again := UI.label("Press Enter.", 24, UI.DIM)
+	again.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(again)
 	first.grab_focus.call_deferred()
 	Sfx.music("music_title")
+
+
+func _input(event: InputEvent) -> void:
+	## Press Enter on an end plate starts the outing again.
+	if event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER):
+		get_viewport().set_input_as_handled()
+		Game.play(int(stats["mission"]))

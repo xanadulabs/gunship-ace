@@ -15,6 +15,7 @@ var tilt_p := 0.0
 var tilt_r := 0.0
 var alive := true
 var falling := false
+var crashing := false
 var fall_t := 0.0
 var fall_from := 0.0
 var spin_t := 0.0
@@ -57,49 +58,66 @@ func aim_point() -> Vector3:
 	return Vector3(pos.x, lift + 1.6, pos.z)
 
 
-func fly(delta: float, wish: Vector2, turn: float, blockers: Array, half: float) -> Dictionary:
-	## wish: x strafe right, y thrust forward. turn: + is left. Returns the slide result.
-	yaw = wrapf(yaw + turn * Rules.YAW_RATE * delta, -180.0, 180.0)
-	vel = Rules.step_velocity(vel, wish, yaw, delta)
+func fly(delta: float, wish: Vector2, turn: float, blockers: Array, half: float, w := 1.0) -> Dictionary:
+	## wish: x strafe right, y thrust forward. turn: + is left. w: weight, 1.0 full.
+	## Returns the slide result: pos, hit, reason.
+	yaw = wrapf(yaw + turn * Rules.YAW_RATE / w * delta, -180.0, 180.0)
+	vel = Rules.step_velocity(vel, wish, yaw, delta, w)
 	var res := Rules.slide(pos, pos + vel * delta, band, blockers, half)
 	var moved: Vector3 = res["pos"]
-	if bool(res["hit"]) and delta > 0.0:
-		vel = (moved - pos) / delta
+	if bool(res["hit"]):
+		# She stops against what stopped her.
+		vel = Vector3.ZERO
 	pos = moved
 	var goal := Rules.band_y(band)
-	lift = move_toward(lift, goal, Rules.CLIMB_RATE * delta)
+	lift = move_toward(lift, goal, Rules.BAND_Y[1] / Rules.CLIMB_SEC / w * delta)
 	var fwd := Rules.yaw_forward(yaw)
 	var right := Rules.yaw_right(yaw)
 	var want_p := -Rules.TILT_MAX * clampf(vel.dot(fwd) / Rules.MAX_SPEED, -1.0, 1.0)
 	var want_r := Rules.TILT_MAX * clampf(vel.dot(right) / Rules.MAX_SPEED, -1.0, 1.0)
-	var lag := 1.0 - exp(-3.0 * delta)
+	var lag := 1.0 - exp(-Rules.TILT_LAG / w * delta)
 	tilt_p = lerpf(tilt_p, want_p, lag)
 	tilt_r = lerpf(tilt_r, want_r, lag)
 	return res
 
 
-func can_climb_to(next_band: int, blockers: Array) -> bool:
-	if next_band < 0 or next_band >= Rules.BANDS:
-		return false
-	# Dropping into a tree or a roof is not allowed.
-	return not Rules.blocked_at(pos.x, pos.z, next_band, blockers)
+func shove(wish: Vector2, w := 1.0) -> void:
+	## A tap is one shove.
+	var dir := Rules.wish_dir(wish, yaw)
+	if dir != Vector3.ZERO:
+		vel = Rules.shove(vel, dir, w)
 
 
-func start_fall() -> void:
+func moving() -> bool:
+	return vel.length() > Rules.STILL_SPEED
+
+
+func blocker_below(next_band: int, blockers: Array) -> String:
+	## What stops a descent into a tree or a roof, or "".
+	return Rules.blocked_at(pos.x, pos.z, next_band, blockers)
+
+
+func start_fall(crash: bool) -> void:
+	## crash: health at zero, she spins down. Otherwise empty fuel: she autorotates and lands.
 	falling = true
+	crashing = crash
 	fall_t = 0.0
 	fall_from = lift
-	vel *= 0.5
+	vel = vel * 0.5 if crash else Vector3.ZERO
 
 
 func fall(delta: float) -> bool:
-	## Autorotation. Returns true on touchdown.
+	## Returns true on touchdown.
 	fall_t += delta
-	var t := clampf(fall_t / Rules.AUTOROTATE_SEC, 0.0, 1.0)
-	lift = lerpf(fall_from, 0.0, t * t)
-	yaw += 120.0 * delta * t
-	pos += vel * delta
-	vel *= exp(-1.5 * delta)
+	var dur := Rules.LAND_SEC * (1.0 if crashing else 1.0 + fall_from / Rules.BAND_Y[2])
+	var t := clampf(fall_t / dur, 0.0, 1.0)
+	if crashing:
+		lift = lerpf(fall_from, 0.0, t * t)
+		yaw += 120.0 * delta * t
+		pos += vel * delta
+		vel *= exp(-1.5 * delta)
+	else:
+		lift = lerpf(fall_from, 0.0, smoothstep(0.0, 1.0, t))
 	return t >= 1.0
 
 

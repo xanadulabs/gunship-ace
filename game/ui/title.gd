@@ -38,7 +38,7 @@ func _ready() -> void:
 	t.add_theme_constant_override("outline_size", 18)
 	t.add_theme_color_override("font_outline_color", Rules.INK)
 	logo.add_child(t)
-	var sub := UI.label("Fly low. Flip trucks. Bring the crews home.", 26, UI.ACCENT)
+	var sub := UI.label("Fly low. Flip jeeps. Bring the crews home.", 26, UI.ACCENT)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_constant_override("outline_size", 8)
 	sub.add_theme_color_override("font_outline_color", Rules.INK)

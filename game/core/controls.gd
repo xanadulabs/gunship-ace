@@ -25,27 +25,31 @@ const LABELS := {
 }
 
 # Keyboard and mouse defaults. "k:" is a physical key, "m:" a mouse button.
-const CLASSIC := {
-	"thrust_fwd": ["k:W", "k:Up"],
-	"thrust_back": ["k:S", "k:Down"],
-	"turn_left": ["k:A", "k:Left"],
-	"turn_right": ["k:D", "k:Right"],
-	"strafe_left": ["k:Q"],
-	"strafe_right": ["k:E"],
-	"climb": ["k:R", "k:PageUp"],
-	"descend": ["k:F", "k:PageDown"],
-	"fire_gun": ["k:Space", "k:J", "m:1"],
-	"fire_rocket": ["k:K", "m:2"],
-	"fire_atgm": ["k:L", "m:3"],
+# The original scheme is the default: W moves forward, A moves left, S moves back, D moves right,
+# Q turns left, E turns right, R goes up, F goes down, left click fires.
+# The arrow keys do not move her. Ctrl does not fire. The mouse does not turn her.
+const ORIGINAL := {
+	"thrust_fwd": ["k:W"],
+	"thrust_back": ["k:S"],
+	"turn_left": ["k:Q"],
+	"turn_right": ["k:E"],
+	"strafe_left": ["k:A"],
+	"strafe_right": ["k:D"],
+	"climb": ["k:R"],
+	"descend": ["k:F"],
+	"fire_gun": ["m:1", "k:Space"],
+	"fire_rocket": ["m:2", "k:K"],
+	"fire_atgm": ["m:3", "k:L"],
 	"pause": ["k:Escape", "k:P"],
 	"map": ["k:Tab", "k:M"],
 	"help": ["k:F1"],
 }
-const MODERN_SWAP := {
-	"turn_left": ["k:Q", "k:Left"],
-	"turn_right": ["k:E", "k:Right"],
-	"strafe_left": ["k:A"],
-	"strafe_right": ["k:D"],
+# Optional, chosen in Options: A and D turn, Q and E slide.
+const TURN_SWAP := {
+	"turn_left": ["k:A"],
+	"turn_right": ["k:D"],
+	"strafe_left": ["k:Q"],
+	"strafe_right": ["k:E"],
 }
 
 var _last_device := "keyboard"
@@ -84,15 +88,15 @@ func apply() -> void:
 
 
 func defaults_for(action: String, scheme: String) -> Array:
-	if scheme == "modern" and MODERN_SWAP.has(action):
-		return MODERN_SWAP[action]
-	return CLASSIC[action]
+	if scheme == "classic" and TURN_SWAP.has(action):
+		return TURN_SWAP[action]
+	return ORIGINAL[action]
 
 
 func set_scheme(scheme: String) -> void:
 	Settings.scheme = scheme
 	# A scheme change resets the keys it moves, so a stale override cannot hide it.
-	for action in MODERN_SWAP.keys():
+	for action in TURN_SWAP.keys():
 		Settings.bindings.erase(action)
 	Settings.save_settings()
 	apply()
@@ -132,12 +136,7 @@ func key_name(action: String) -> String:
 		return _pad_name(action)
 	for ev in InputMap.action_get_events(action):
 		if ev is InputEventKey:
-			var code: Key = ev.physical_keycode
-			if code == KEY_NONE:
-				code = ev.keycode
-			else:
-				code = DisplayServer.keyboard_get_keycode_from_physical(code)
-			return OS.get_keycode_string(code)
+			return OS.get_keycode_string(_display_code(ev))
 		if ev is InputEventMouseButton:
 			return ["", "Left click", "Right click", "Middle click"][clampi(ev.button_index, 0, 3)]
 	return "-"
@@ -147,12 +146,19 @@ func all_names(action: String) -> String:
 	var parts: Array[String] = []
 	for ev in InputMap.action_get_events(action):
 		if ev is InputEventKey:
-			var code: Key = ev.physical_keycode
-			code = DisplayServer.keyboard_get_keycode_from_physical(code) if code != KEY_NONE else ev.keycode
-			parts.append(OS.get_keycode_string(code))
+			parts.append(OS.get_keycode_string(_display_code(ev)))
 		elif ev is InputEventMouseButton:
 			parts.append(["", "Left click", "Right click", "Middle click"][clampi(ev.button_index, 0, 3)])
 	return " / ".join(parts)
+
+
+func _display_code(ev: InputEventKey) -> Key:
+	## The key as printed on this keyboard layout. Headless has no layout; use the physical key.
+	if ev.physical_keycode == KEY_NONE:
+		return ev.keycode
+	if DisplayServer.get_name() == "headless":
+		return ev.physical_keycode
+	return DisplayServer.keyboard_get_keycode_from_physical(ev.physical_keycode)
 
 
 func _pad_name(action: String) -> String:
@@ -214,17 +220,18 @@ func _button(button: JoyButton) -> InputEventJoypadButton:
 
 
 func _pad_events(action: String, scheme: String) -> Array:
+	# Original: the left stick moves like W, A, S and D; the right stick turns like Q and E.
 	var turn_axis := JOY_AXIS_LEFT_X if scheme == "classic" else JOY_AXIS_RIGHT_X
 	var strafe_axis := JOY_AXIS_RIGHT_X if scheme == "classic" else JOY_AXIS_LEFT_X
 	match action:
 		"thrust_fwd":
-			return [_axis(JOY_AXIS_LEFT_Y, -1.0), _button(JOY_BUTTON_DPAD_UP)]
+			return [_axis(JOY_AXIS_LEFT_Y, -1.0)]
 		"thrust_back":
-			return [_axis(JOY_AXIS_LEFT_Y, 1.0), _button(JOY_BUTTON_DPAD_DOWN)]
+			return [_axis(JOY_AXIS_LEFT_Y, 1.0)]
 		"turn_left":
-			return [_axis(turn_axis, -1.0), _button(JOY_BUTTON_DPAD_LEFT)]
+			return [_axis(turn_axis, -1.0)]
 		"turn_right":
-			return [_axis(turn_axis, 1.0), _button(JOY_BUTTON_DPAD_RIGHT)]
+			return [_axis(turn_axis, 1.0)]
 		"strafe_left":
 			return [_axis(strafe_axis, -1.0)]
 		"strafe_right":

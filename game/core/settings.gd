@@ -9,11 +9,13 @@ var music := 0.6
 var sfx := 0.8
 var fullscreen := false
 var shake := true
-var scheme := "classic"        # "classic" rotate and thrust, "modern" strafe on A and D
+var scheme := "original"       # "original": A/D slide, Q/E turn. "classic": A/D turn, Q/E slide
 var bindings: Dictionary = {}  # action -> Array of serialized events, only for overrides
 var unlocked := 1
 var best: Dictionary = {}      # mission index (string) -> best score
 var seen_help := false
+var show_keys := true          # the left plate names the keys; F1 hides it
+const SETTINGS_VERSION := 2
 
 
 func _ready() -> void:
@@ -32,6 +34,11 @@ func load_all() -> void:
 		scheme = str(cfg.get_value("controls", "scheme", scheme))
 		bindings = cfg.get_value("controls", "bindings", {})
 		seen_help = bool(cfg.get_value("misc", "seen_help", false))
+		show_keys = bool(cfg.get_value("misc", "show_keys", true))
+		if int(cfg.get_value("misc", "version", 1)) < SETTINGS_VERSION:
+			# v1 defaulted to the turn-on-A/D scheme. The original scheme is the floor now.
+			scheme = "original"
+			bindings = {}
 	var prog := ConfigFile.new()
 	if prog.load(SAVE_PATH) == OK:
 		unlocked = int(prog.get_value("campaign", "unlocked", 1))
@@ -48,6 +55,8 @@ func save_settings() -> void:
 	cfg.set_value("controls", "scheme", scheme)
 	cfg.set_value("controls", "bindings", bindings)
 	cfg.set_value("misc", "seen_help", seen_help)
+	cfg.set_value("misc", "show_keys", show_keys)
+	cfg.set_value("misc", "version", SETTINGS_VERSION)
 	cfg.save(PATH)
 
 

@@ -6,7 +6,7 @@
 tools/build.sh
 ```
 
-This produces `build/GunshipAce-1.0.0-linux.zip`, `-windows.zip` and `-web.zip`. The script stops if the probe fails, either on the project or inside the exported Linux binary. Store screenshots come from `~/bin/godot --path game -- --shots build/screenshots`.
+This produces `build/GunshipAce-1.1.0-linux.zip`, `-windows.zip` and `-web.zip`. The script stops if the probe fails, either on the project or inside the exported Linux binary. Store screenshots come from `~/bin/godot --path game -- --shots build/screenshots`.
 
 ## 2. Check by hand before uploading
 
@@ -25,17 +25,17 @@ These have not been checked by a person yet:
    * Pricing: free, or pay-what-you-want with a $0 minimum, for the first release. It buys feedback.
 2. Upload the zips by hand, or with butler:
    ```
-   butler push build/GunshipAce-1.0.0-linux.zip   <you>/gunship-ace:linux   --userversion 1.0.0
-   butler push build/GunshipAce-1.0.0-windows.zip <you>/gunship-ace:windows --userversion 1.0.0
-   butler push build/GunshipAce-1.0.0-web.zip     <you>/gunship-ace:html5   --userversion 1.0.0
+   butler push build/GunshipAce-1.1.0-linux.zip   <you>/gunship-ace:linux   --userversion 1.1.0
+   butler push build/GunshipAce-1.1.0-windows.zip <you>/gunship-ace:windows --userversion 1.1.0
+   butler push build/GunshipAce-1.1.0-web.zip     <you>/gunship-ace:html5   --userversion 1.1.0
    ```
 3. Page copy (draft):
 
-   > **Gunship Ace**: *Fly low. Flip trucks. Bring the crews home.*
+   > **Gunship Ace**: *Fly low. Flip jeeps. Bring the crews home.*
    >
    > A top-down attack-helicopter game in the spirit of the early-90s strike games. Fly a Mi-24 Hind through four missions: knock out the radar, stop a supply convoy, rescue downed crew under SAM cover, and take the militia command post.
    >
-   > Your rotor wash is a weapon. Hover still at nap-of-earth beside a jeep and the downwash flips it. But down low, everything can shoot you. Climb and the rifles cannot reach you, but the SAMs can.
+   > Your rotor wash is a weapon. Come down to the ground, hold still beside a jeep, and the downwash flips it. But down low, everything can shoot you. Climb and the rifles cannot reach you, but the SAMs can.
    >
    > * 4 missions, each with several objectives, plus lives, fuel and ammo pickups
    > * Chin gun, rocket pods and guided missiles

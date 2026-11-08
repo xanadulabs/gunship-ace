@@ -46,7 +46,7 @@ func play(index: int) -> void:
 
 func result(stats: Dictionary) -> void:
 	Sfx.rotor(false)
-	if bool(stats["won"]):
+	if bool(stats["won"]) and not bool(stats.get("dry_run", false)):
 		Settings.record_win(int(stats["mission"]), int(stats["score"]), Missions.count())
 	var r = load("res://ui/result.gd").new()
 	r.stats = stats
