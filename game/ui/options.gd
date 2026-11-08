@@ -13,10 +13,13 @@ var _first: Control
 
 func _ready() -> void:
 	theme = UI.get_theme()
+	add_theme_stylebox_override("panel", UI.plate(Rules.INK, Rules.PAPER, 3, 18))
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	set_anchors_preset(Control.PRESET_CENTER)
 	custom_minimum_size = Vector2(900, 760)
-	position = -custom_minimum_size * 0.5
+	size = custom_minimum_size
+	grow_horizontal = Control.GROW_DIRECTION_BOTH
+	grow_vertical = Control.GROW_DIRECTION_BOTH
+	set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	add_child(v)

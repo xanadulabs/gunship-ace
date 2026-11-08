@@ -73,11 +73,11 @@ const UNITS := {
 
 const ENEMY_WEAPONS := {
 	"rifle": {"range": 15.0, "cool": 2.2, "damage": 2.0, "speed": 30.0, "bands": [0, 1], "burst": 1, "spread": 0.06},
-	"mg": {"range": 18.0, "cool": 2.4, "damage": 3.0, "speed": 32.0, "bands": [0, 1], "burst": 3, "spread": 0.07},
-	"hmg": {"range": 21.0, "cool": 2.6, "damage": 4.0, "speed": 34.0, "bands": [0, 1], "burst": 4, "spread": 0.07},
-	"flak": {"range": 26.0, "cool": 2.4, "damage": 5.0, "speed": 40.0, "bands": [0, 1, 2], "burst": 4, "spread": 0.09},
-	"cannon": {"range": 22.0, "cool": 3.6, "damage": 15.0, "speed": 30.0, "bands": [0], "burst": 1, "spread": 0.02},
-	"sam": {"range": 38.0, "cool": 5.5, "damage": 26.0, "speed": 17.0, "bands": [1, 2], "burst": 1, "spread": 0.0, "turn": 1.7},
+	"mg": {"range": 18.0, "cool": 2.6, "damage": 2.0, "speed": 32.0, "bands": [0, 1], "burst": 3, "spread": 0.07},
+	"hmg": {"range": 21.0, "cool": 2.8, "damage": 2.5, "speed": 34.0, "bands": [0, 1], "burst": 4, "spread": 0.07},
+	"flak": {"range": 26.0, "cool": 2.8, "damage": 3.0, "speed": 40.0, "bands": [0, 1, 2], "burst": 3, "spread": 0.09},
+	"cannon": {"range": 22.0, "cool": 3.8, "damage": 12.0, "speed": 30.0, "bands": [0], "burst": 1, "spread": 0.02},
+	"sam": {"range": 38.0, "cool": 6.5, "damage": 22.0, "speed": 17.0, "bands": [1, 2], "burst": 1, "spread": 0.0, "turn": 1.7},
 }
 const SHOT_HIT_RADIUS := 1.7
 const SAM_LIFE := 6.0

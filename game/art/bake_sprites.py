@@ -1048,4 +1048,11 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+    if "--force" not in sys.argv:
+        # main() repaints the slice sprites as flat-shaded meshes and would overwrite the
+        # painted Hind, vehicles and buildings that paint_look.py and install_hind_d.py made.
+        # bake_units.py imports the helpers from here; that is the normal use of this file.
+        print("bake_sprites.py: refusing to overwrite the painted sprites. Pass --force if you mean it.")
+        sys.exit(1)
     main()

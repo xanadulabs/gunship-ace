@@ -1,5 +1,20 @@
 # Gunship Ace: review and release plan
 
+## Status: 2026-11-07, v1.0.0 build
+
+| Phase | State |
+|---|---|
+| 0 Safety net | **Done.** Git, `v0.1-grok` tag, source art in `art/source/`, probe, screenshot tour |
+| 1 Runs anywhere | **Done.** Imported textures, bundled font, stretch, Compatibility renderer, pause and quit, F11, export presets. The exported Linux build passes the probe. |
+| 2 Fair and fun slice | **Done in code.** Safe LZ spawns, altitude-aware fire, structures block, graded wash, visible gunfire, fuel tuned, facings 1 and 5. **Not yet playtested by people.** |
+| 3 Feels like Desert Strike | **Done.** Two schemes, rebinding, gamepad, three weapons with ammo, pickups, HUD, radar, synthesized audio, shake, smoke, scorch |
+| 4 A game | **Done.** Four missions on 220–300 m maps, eight enemy types, rescue, lives, title, briefing, map, saved progress |
+| 5 Release | **Builds ready** via `tools/build.sh`. **Left for you:** the hand checks in [docs/RELEASE.md](docs/RELEASE.md) (Windows and web were exported but not run here), playtests, the name check, and the itch.io upload, which needs your account. |
+
+Design as built: [MODE_BIBLE.md](MODE_BIBLE.md). The review below is kept as written for the record.
+
+---
+
 Reviewed 2026-11-07 against the code in `game/`, the stills, and a scripted 12-second play run (screenshots in the review session).
 
 ## Verdict

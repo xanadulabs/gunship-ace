@@ -46,6 +46,7 @@ func _tour() -> void:
 	Game.play(0)
 	await _wait(1.5)
 	await _shot("m1_start")
+	Game.current.hud.help.visible = false
 	var w = _world()
 	w.armor = 1.0e9
 	w.autopilot = {"wish": Vector2(0, 1)}
