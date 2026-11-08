@@ -5,11 +5,11 @@ import math
 import os
 import sys
 
-sys.path.insert(0, "/home/hierophant/Projects/hind-merc/game/art")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from paint_look import load_rgba, write_png
 
 OUT = "/tmp/hind-spin-debug"
-SPRITES = "/home/hierophant/Projects/hind-merc/game/art/sprites"
+SPRITES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprites")
 
 
 def solid_mask(rgba, w, h):

@@ -14,6 +14,8 @@ IMG = paint.IMG
 # along the lower edge. 1 shares 2, and 5 shares 4: a straight-up or
 # straight-down heading collapsed into a plan view.
 FACES = {
+    1: "64.jpg",
+    5: "63.jpg",
     0: "54.jpg",
     2: "57.jpg",
     3: "58.jpg",
@@ -21,7 +23,7 @@ FACES = {
     6: "62.jpg",
     7: "56.jpg",
 }
-COPY = {1: 2, 5: 4}
+COPY = {}
 BODY = 200
 # The whole bird has to sit on the map. The rotor makes the picture tall.
 # Cap how far the art rises above the wheels, and how wide it is.

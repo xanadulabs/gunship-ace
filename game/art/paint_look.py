@@ -14,10 +14,7 @@ import zlib
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "sprites")
-IMG = (
-    "/home/hierophant/.grok/sessions/"
-    "%2Fhome%2Fhierophant/01a1af89-c4dc-7f71-8954-3c5faab1dcac/images"
-)
+IMG = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "art", "source")
 PREVIEW = "/tmp/hind-preview"
 
 # Same camera as bake_sprites.py. Screen y grows downward.
