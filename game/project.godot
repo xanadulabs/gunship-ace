@@ -1,0 +1,24 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+
+config/name="Gunship Ace"
+config/description="First slice. Design: MODE_BIBLE.md at the repo root."
+run/main_scene="res://world/main.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1600
+window/size/window_height_override=900
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+anti_aliasing/quality/msaa_3d=0
+lights_and_shadows/directional_shadow/size=2048
+environment/defaults/default_clear_color=Color(0.62, 0.7, 0.74, 1)
