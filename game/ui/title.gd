@@ -32,6 +32,7 @@ func _ready() -> void:
 	logo.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	logo.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	logo.position.y = 90
+	logo.add_theme_constant_override("separation", 18)
 	root.add_child(logo)
 	var t := UI.label("GUNSHIP ACE", 96, Rules.PAPER, true)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -131,7 +132,7 @@ func _credits() -> void:
 		["Painted sprite sources were generated with AI image tools,", 20, UI.DIM],
 		["then keyed, scaled and cleaned for the game camera.", 20, UI.DIM],
 		["Built with Godot Engine (MIT license, godotengine.org).", 20, UI.DIM],
-		["Lato typeface by Lukasz Dziedzic, SIL Open Font License 1.1.", 20, UI.DIM],
+		["Press Start 2P typeface by Cody Boisclair, SIL Open Font License 1.1.", 20, UI.DIM],
 		["A love letter to the top-down helicopter games of the early 90s.", 20, UI.DIM],
 	]:
 		t.add_child(UI.label(line[0], line[1], line[2]))

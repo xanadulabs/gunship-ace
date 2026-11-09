@@ -51,6 +51,7 @@ func _ready() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 40)
+	grid.add_theme_constant_override("v_separation", 10)
 	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(grid)
 	for row in [["Time", Rules.time_text(float(stats["time"]))], ["Destroyed", str(stats["kills"])],

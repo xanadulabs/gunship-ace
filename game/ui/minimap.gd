@@ -3,6 +3,7 @@ extends Control
 ## Used small on the HUD and large on the map screen.
 
 const Rules = preload("res://core/rules.gd")
+const UI = preload("res://ui/ui_theme.gd")
 const K := 0.70710678
 
 var world
@@ -40,10 +41,10 @@ func _draw() -> void:
 		for i in range(pts.size() - 1):
 			draw_line(_to(pts[i].x, pts[i].y), _to(pts[i + 1].x, pts[i + 1].y), Color(0.52, 0.42, 0.28), maxf(1.0, float(r["w"]) * _scale * 0.7))
 	var blink := int(Time.get_ticks_msec() / 300) % 2 == 0
-	var font := ThemeDB.fallback_font
+	var font: Font = UI.PIXEL
 	var lz: Vector2 = _to3(world.lz)
 	draw_circle(lz, maxf(5.0, Rules.LZ_RADIUS * _scale), Color(0.9, 0.9, 0.8, 0.35))
-	draw_string(font, lz + Vector2(-5, 6), "H", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Rules.PAPER)
+	draw_string(font, lz + Vector2(-5, 6), "H", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Rules.PAPER)
 	var want_tags := {}
 	var obj: Dictionary = world.current_objective()
 	if not obj.is_empty() and obj["spec"].has("tag"):

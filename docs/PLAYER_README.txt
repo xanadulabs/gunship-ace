@@ -1,4 +1,4 @@
-GUNSHIP ACE  v1.1.0
+GUNSHIP ACE  v1.2.0
 Fly low. Flip jeeps. Bring the crews home.
 
 A top-down attack-helicopter game. You fly a Mi-24 Hind across four missions:
@@ -11,7 +11,7 @@ KEYS
   Q turns left.        E turns right.
   R goes up.           F goes down.
   Left click fires.    Right click fires rockets.    Middle click fires a missile.
-  Tab shows the map.   Esc pauses.   F1 hides the key plate.   F11 fullscreen.
+  Tab shows the map.   Esc pauses.   F1 shows the keys.   F11 fullscreen.
 
   Gamepad: left stick moves, right stick turns, RB/LB up and down,
   A or RT gun, X or LT rockets, Y missile, Start pause, Back map.
@@ -32,4 +32,4 @@ THE GUN
   Past that, the shot misses.
 
 Progress and settings are saved automatically.
-Licenses for the engine and font are in THIRD_PARTY.txt and FONT_LICENSE_OFL.txt.
+Licenses for the engine and fonts are in THIRD_PARTY.txt and FONT_LICENSE_OFL_PressStart2P.txt.

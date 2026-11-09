@@ -20,7 +20,7 @@ Design, with the original minimums at the top: [MODE_BIBLE.md](MODE_BIBLE.md). S
 | Guided missile | Middle click (or L) | Y |
 | Map and objectives | Tab, M | Back |
 | Pause | Esc, P | Start |
-| Hide the key plate | F1 | |
+| Show or hide the key list | F1 | |
 | Fullscreen | F11 | |
 
 These are the original design keys and they are the default. The arrow keys do not move her. Options has an alternate scheme (A/D turn, Q/E slide), and every key can be rebound.

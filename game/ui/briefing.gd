@@ -29,19 +29,19 @@ func _ready() -> void:
 	v.add_child(UI.label(str(m["name"]).to_upper(), 64, Rules.PAPER, true))
 	v.add_child(HSeparator.new())
 	for line in m["brief"]:
-		v.add_child(UI.label(str(line), 23))
+		v.add_child(_wrap(UI.label(str(line), 23)))
 	v.add_child(HSeparator.new())
 	v.add_child(UI.label("OBJECTIVES", 24, UI.ACCENT))
 	var n := 1
 	for o in m["objectives"]:
-		v.add_child(UI.label("%d.  %s" % [n, o["label"]], 23))
+		v.add_child(_wrap(UI.label("%d.  %s" % [n, o["label"]], 23)))
 		n += 1
 	v.add_child(HSeparator.new())
 	var keys := "%s / %s fly    %s / %s turn    %s climb    %s descend    %s gun    %s rockets    %s missile    %s map" % [
 		Controls.key_name("thrust_fwd"), Controls.key_name("thrust_back"), Controls.key_name("turn_left"),
 		Controls.key_name("turn_right"), Controls.key_name("climb"), Controls.key_name("descend"),
 		Controls.key_name("fire_gun"), Controls.key_name("fire_rocket"), Controls.key_name("fire_atgm"), Controls.key_name("map")]
-	v.add_child(UI.label(keys, 18, UI.DIM))
+	v.add_child(_wrap(UI.label(keys, 18, UI.DIM)))
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 16)
 	v.add_child(h)
@@ -49,6 +49,13 @@ func _ready() -> void:
 	h.add_child(go)
 	h.add_child(UI.button("Back", Game.title))
 	go.grab_focus.call_deferred()
+
+
+func _wrap(l: Label) -> Label:
+	## Pixel glyphs are wide: long lines wrap inside the column instead of widening it.
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 1100
+	return l
 
 
 func _unhandled_input(event: InputEvent) -> void:

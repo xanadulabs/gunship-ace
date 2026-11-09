@@ -45,12 +45,12 @@ func _ready() -> void:
 	scheme.add_item("Original: A/D slide, Q/E turn")
 	scheme.add_item("Alternate: A/D turn, Q/E slide")
 	scheme.select(1 if Settings.scheme == "classic" else 0)
-	scheme.add_theme_font_size_override("font_size", 20)
+	scheme.add_theme_font_size_override("font_size", 16)
 	scheme.item_selected.connect(func(i: int) -> void:
 		Controls.set_scheme("classic" if i == 1 else "original")
 		_refresh_keys())
 	list.add_child(scheme)
-	list.add_child(UI.label("Click a key to change it, then press the new key or mouse button. Esc cancels.", 18, UI.DIM))
+	list.add_child(_wrap(UI.label("Click a key to change it, then press the new key or mouse button. Esc cancels.", 18, UI.DIM)))
 	for action in Controls.ACTIONS:
 		if action == "pause":
 			continue
@@ -60,7 +60,7 @@ func _ready() -> void:
 		row.add_child(name_label)
 		var b := Button.new()
 		b.custom_minimum_size = Vector2(500, 40)
-		b.add_theme_font_size_override("font_size", 20)
+		b.add_theme_font_size_override("font_size", 16)
 		b.pressed.connect(func() -> void:
 			_capture = action
 			b.text = "Press a key..."
@@ -68,7 +68,7 @@ func _ready() -> void:
 		row.add_child(b)
 		list.add_child(row)
 		_rows[action] = b
-	list.add_child(UI.label("Gamepad: left stick moves, right stick turns, RB/LB up and down, A or RT gun, X or LT rockets, Y missile.", 18, UI.DIM))
+	list.add_child(_wrap(UI.label("Gamepad: left stick moves, right stick turns, RB/LB up and down, A or RT gun, X or LT rockets, Y missile.", 18, UI.DIM)))
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 16)
 	v.add_child(buttons)
@@ -82,6 +82,12 @@ func _ready() -> void:
 	buttons.add_child(back)
 	_refresh_keys()
 	_first.grab_focus.call_deferred()
+
+
+func _wrap(l: Label) -> Label:
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 820
+	return l
 
 
 func _slider(parent: Control, text: String, value: float, set_value: Callable) -> Control:
@@ -107,7 +113,7 @@ func _check(parent: Control, text: String, value: bool, set_value: Callable) -> 
 	var c := CheckButton.new()
 	c.text = text
 	c.button_pressed = value
-	c.add_theme_font_size_override("font_size", 20)
+	c.add_theme_font_size_override("font_size", 16)
 	c.toggled.connect(func(on: bool) -> void: set_value.call(on))
 	parent.add_child(c)
 

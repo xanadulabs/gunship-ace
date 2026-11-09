@@ -123,7 +123,7 @@ const EXTRA_LINES: Array[String] = [
 	"Right click fires rockets.",
 	"Middle click fires a missile.",
 	"Tab shows the map.",
-	"F1 hides this plate.",
+	"F1 shows or hides the keys.",
 ]
 
 

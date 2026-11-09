@@ -34,7 +34,7 @@ echo "== notices"
 "$GODOT" --headless --path "$GAME" -- --licenses "$OUT/THIRD_PARTY.txt" >/dev/null 2>&1
 for d in linux windows web; do
   cp "$OUT/THIRD_PARTY.txt" "$OUT/$d/"
-  cp "$GAME/ui/fonts/OFL.txt" "$OUT/$d/FONT_LICENSE_OFL.txt"
+  cp "$GAME/ui/fonts/OFL-PressStart2P.txt" "$OUT/$d/FONT_LICENSE_OFL_PressStart2P.txt"
   cp "$ROOT/docs/PLAYER_README.txt" "$OUT/$d/README.txt"
 done
 

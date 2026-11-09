@@ -14,8 +14,8 @@ var bindings: Dictionary = {}  # action -> Array of serialized events, only for 
 var unlocked := 1
 var best: Dictionary = {}      # mission index (string) -> best score
 var seen_help := false
-var show_keys := true          # the left plate names the keys; F1 hides it
-const SETTINGS_VERSION := 2
+var show_keys := false         # F1 shows the key list over the play area
+const SETTINGS_VERSION := 3
 
 
 func _ready() -> void:
@@ -34,11 +34,14 @@ func load_all() -> void:
 		scheme = str(cfg.get_value("controls", "scheme", scheme))
 		bindings = cfg.get_value("controls", "bindings", {})
 		seen_help = bool(cfg.get_value("misc", "seen_help", false))
-		show_keys = bool(cfg.get_value("misc", "show_keys", true))
-		if int(cfg.get_value("misc", "version", 1)) < SETTINGS_VERSION:
+		show_keys = bool(cfg.get_value("misc", "show_keys", false))
+		if int(cfg.get_value("misc", "version", 1)) < 2:
 			# v1 defaulted to the turn-on-A/D scheme. The original scheme is the floor now.
 			scheme = "original"
 			bindings = {}
+		if int(cfg.get_value("misc", "version", 1)) < 3:
+			# v3 drops the plates; the key list starts hidden.
+			show_keys = false
 	var prog := ConfigFile.new()
 	if prog.load(SAVE_PATH) == OK:
 		unlocked = int(prog.get_value("campaign", "unlocked", 1))

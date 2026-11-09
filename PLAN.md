@@ -13,6 +13,8 @@
 
 **v1.1.0 (same day):** the original v0.1 rules are the floor again. The original keys are the default and the arrow keys are off. The wash attacks only on the ground and only while still. Trucks shake and never tip. Health is 8 and a shot removes 2. The original gun slew rules and point values are back, empty fuel lands safely, and the plates use the original sentences. The weight link from "Next slice" is in. The probe checks every minimum (244 checks).
 
+**v1.2.0 (2026-11-08):** the plates are gone. One pixel font (Press Start 2P, OFL) everywhere with a heavy ink stroke, after SNES Desert Strike, Super Street Fighter II and Area 88. In a mission: a thin strip across the top (fuel bar, health blocks, height and wash, objective, ammo, lives, crew) and callouts that pop and fade. F1 shows the keys, hidden by default. Lato removed. The probe adds HUD checks and an on-screen layout check for every menu screen (257 checks).
+
 Design as built: [MODE_BIBLE.md](MODE_BIBLE.md). The review below is kept as written for the record.
 
 ---

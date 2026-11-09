@@ -78,7 +78,7 @@ static func _dust_off() -> Dictionary:
 		],
 		"crew": [],
 		"objectives": [
-			{"type": "flip", "tag": "patrol", "count": 3, "label": "Flip the 3 patrol jeeps with your rotor wash"},
+			{"type": "flip", "tag": "patrol", "count": 3, "label": "Flip 3 patrol jeeps with the rotor wash"},
 			{"type": "destroy", "tag": "aa", "label": "Destroy the 2 AA guns at the radar site"},
 			{"type": "destroy", "tag": "radar", "label": "Destroy the radar station"},
 			{"type": "return", "label": "Return to the LZ"},

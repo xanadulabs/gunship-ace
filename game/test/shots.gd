@@ -36,7 +36,7 @@ func _world():
 
 
 func _tour() -> void:
-	Settings.show_keys = true
+	Settings.show_keys = false
 	Game.title()
 	await _wait(2.0)
 	await _shot("title")
@@ -46,7 +46,6 @@ func _tour() -> void:
 	Game.play(0)
 	await _wait(1.5)
 	await _shot("m1_start")
-	Game.current.hud.left.visible = true
 	var w = _world()
 	w.invincible = true
 	w.autopilot = {"wish": Vector2(0, 1)}

@@ -1,10 +1,11 @@
 extends RefCounted
-## One theme for every screen: ink plates, paper text, hard edges, Lato.
+## One theme for every screen: ink panels, hard edges, and the pixel font with a heavy ink stroke.
 
 const Rules = preload("res://core/rules.gd")
 
-const BOLD := preload("res://ui/fonts/Lato-Bold.ttf")
-const BLACK := preload("res://ui/fonts/Lato-Black.ttf")
+## The one font: Press Start 2P, an 8 px pixel face, drawn only at whole multiples of 8
+## with no smoothing so every pixel stays square. px() snaps any size onto that grid.
+const PIXEL := preload("res://ui/fonts/PressStart2P-Regular.ttf")
 const ACCENT := Color(0.86, 0.6, 0.2)
 const DIM := Color(0.62, 0.56, 0.46)
 
@@ -15,9 +16,16 @@ static func get_theme() -> Theme:
 	if _theme != null:
 		return _theme
 	var t := Theme.new()
-	t.default_font = BOLD
-	t.default_font_size = 24
+	t.default_font = PIXEL
+	t.default_font_size = 16
 	t.set_color("font_color", "Label", Rules.PAPER)
+	for kind in ["Label", "Button", "CheckButton", "OptionButton", "PopupMenu"]:
+		t.set_color("font_outline_color", kind, Rules.INK)
+		t.set_constant("outline_size", kind, 8)
+	t.set_color("font_shadow_color", "Label", Rules.INK)
+	t.set_constant("shadow_offset_x", "Label", 3)
+	t.set_constant("shadow_offset_y", "Label", 3)
+	t.set_constant("shadow_outline_size", "Label", 8)
 	for kind in ["Button", "CheckButton", "OptionButton"]:
 		t.set_stylebox("normal", kind, plate(Rules.INK, DIM, 2))
 		t.set_stylebox("hover", kind, plate(Color(0.2, 0.16, 0.11), ACCENT, 2))
@@ -55,22 +63,39 @@ static func plate(fill: Color, edge: Color, width: int, pad := 14) -> StyleBoxFl
 	return s
 
 
-static func label(text: String, size := 24, color := Rules.PAPER, heavy := false) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_font_size_override("font_size", size)
-	l.add_theme_color_override("font_color", color)
-	if heavy:
-		l.add_theme_font_override("font", BLACK)
-	return l
+static func px(size: int) -> int:
+	## Map a design size onto the pixel grid. The pixel face is wider than a text face,
+	## so it runs at three quarters of the asked size, snapped to 8, never under 16.
+	return maxi(16, int(round(size * 0.75 / 8.0)) * 8)
+
+
+static func label(text: String, size := 24, color := Rules.PAPER, _heavy := false) -> Label:
+	return pixel_label(text, px(size), color)
 
 
 static func button(text: String, callback: Callable, size := 26) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.add_theme_font_size_override("font_size", size)
-	b.custom_minimum_size = Vector2(360, 54)
+	b.add_theme_font_size_override("font_size", px(size))
+	b.custom_minimum_size = Vector2(420, 54)
 	b.pressed.connect(func() -> void:
 		Sfx.play("click", -6.0)
 		callback.call())
 	return b
+
+
+static func pixel_label(text: String, size := 16, color := Color.WHITE) -> Label:
+	## Pixel font with a heavy ink stroke and a hard drop shadow, like the 16-bit arcade HUDs.
+	var l := Label.new()
+	l.text = text
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_override("font", PIXEL)
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	l.add_theme_color_override("font_outline_color", Rules.INK)
+	l.add_theme_constant_override("outline_size", maxi(8, size / 2))
+	l.add_theme_color_override("font_shadow_color", Rules.INK)
+	l.add_theme_constant_override("shadow_offset_x", size / 8 + 2)
+	l.add_theme_constant_override("shadow_offset_y", size / 8 + 2)
+	l.add_theme_constant_override("shadow_outline_size", maxi(8, size / 2))
+	return l

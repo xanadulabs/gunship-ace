@@ -28,6 +28,8 @@ static func run(host: Node) -> int:
 	_data()
 	_art()
 	await _sim(host)
+	_hud(host)
+	await _layout(host)
 	print("probe: %d passed, %d failed" % [passes, failures.size()])
 	if failures.is_empty():
 		print("probe ok")
@@ -164,6 +166,96 @@ static func _art() -> void:
 	check(missing.is_empty(), "all sprites import and load (missing: %s)" % ", ".join(missing))
 	for s in ["rotor", "gun", "rocket", "atgm", "sam", "boom", "boom_small", "hit", "flip", "warn", "winch", "pickup", "rescue", "objective", "fail", "click", "music_mission", "music_title"]:
 		check(Sfx.stream(s) != null, "sound %s loads" % s)
+
+
+# ------------------------------------------------------------------ hud
+
+static func _hud(host: Node) -> void:
+	## No plates: bare pixel text with a heavy stroke, and the key list starts hidden.
+	var UI = load("res://ui/ui_theme.gd")
+	var w = _world(host, 0)
+	var hud = load("res://ui/hud.gd").new()
+	var keep: bool = Settings.show_keys
+	Settings.show_keys = false
+	host.add_child(hud)
+	hud.setup(w)
+	hud._process(DT)
+	var panels := 0
+	var labels := 0
+	var bad: Array[String] = []
+	var stack: Array[Node] = [hud]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		stack.append_array(n.get_children())
+		if n is Panel or n is PanelContainer:
+			panels += 1
+		if n is Label:
+			labels += 1
+			var l := n as Label
+			if l.get_theme_font("font") != UI.PIXEL or l.get_theme_constant("outline_size") < 8:
+				bad.append(l.text)
+	check(panels == 0, "the HUD has no plates")
+	check(labels > 8 and bad.is_empty(), "every HUD word is the pixel font with a heavy stroke (%s)" % ", ".join(bad))
+	check(not hud.left.visible, "the key list starts hidden; F1 shows it")
+	check(hud.fuel_num.text == "100" and hud.health_bar.cells == 4, "HUD shows fuel 100 and 4 health blocks")
+	var long: Array[String] = []
+	for i in Missions.count():
+		for o in Missions.get_mission(i)["objectives"]:
+			if str(o["label"]).length() > hud.OBJECTIVE_CHARS:
+				long.append(str(o["label"]))
+	check(long.is_empty(), "every objective fits the HUD on one line (%s)" % ", ".join(long))
+	check(hud.objective.text != "" and hud.height_label.text.begins_with("GROUND"), "HUD shows the objective and the height")
+	Settings.show_keys = keep
+	hud.queue_free()
+	w.queue_free()
+
+
+static func _offscreen(node: Node, view: Rect2) -> Array[String]:
+	## Every visible control must sit inside the screen. Pixel glyphs are wide, so a long
+	## unwrapped line pushes a whole screen off the edge.
+	var out: Array[String] = []
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is CanvasItem and not (n as CanvasItem).visible:
+			continue
+		if not n is ScrollContainer:
+			stack.append_array(n.get_children())   # rows inside a scroll area may run below the fold
+		if n is Control:
+			var r := (n as Control).get_global_rect()
+			if r.size.x > 0.0 and not view.grow(2.0).encloses(r):
+				out.append("%s %s" % [n.get_class(), r])
+	return out
+
+
+static func _layout(host: Node) -> void:
+	var win := host.get_window()
+	var keep := win.size
+	win.size = Vector2i(1600, 900)
+	await host.get_tree().process_frame
+	var view := host.get_viewport().get_visible_rect()
+	check(view.size == Vector2(1600, 900), "layout test runs at 1600x900 (%s)" % view.size)
+	var screens: Array = []
+	for i in Missions.count():
+		var b = load("res://ui/briefing.gd").new()
+		b.index = i
+		screens.append(["briefing %d" % (i + 1), b])
+	var r = load("res://ui/result.gd").new()
+	r.stats = {"won": true, "name": "Gunship Ace", "mission": Missions.count() - 1, "time": 312.0, "kills": 14, "flips": 4, "crew": 5, "lives": 2, "score": 6420, "end": "clear", "reason": "", "dry_run": true}
+	screens.append(["result", r])
+	var c := CanvasLayer.new()
+	var o = load("res://ui/options.gd").new()
+	c.add_child(o)
+	screens.append(["options", c])
+	for s in screens:
+		host.add_child(s[1])
+		for f in 3:
+			await host.get_tree().process_frame
+		var bad := _offscreen(s[1], view)
+		check(bad.is_empty(), "%s fits on screen (%s)" % [s[0], ", ".join(bad.slice(0, 3))])
+		s[1].queue_free()
+	await host.get_tree().process_frame
+	win.size = keep
 
 
 # ------------------------------------------------------------------ simulation
