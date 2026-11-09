@@ -9,13 +9,13 @@ var music := 0.6
 var sfx := 0.8
 var fullscreen := false
 var shake := true
-var scheme := "original"       # "original": A/D slide, Q/E turn. "classic": A/D turn, Q/E slide
+var scheme := "original"       # one keyboard scheme (A/D turn, no slide key); kept for the gamepad axes
 var bindings: Dictionary = {}  # action -> Array of serialized events, only for overrides
 var unlocked := 1
 var best: Dictionary = {}      # mission index (string) -> best score
 var seen_help := false
 var show_keys := false         # F1 shows the key list over the play area
-const SETTINGS_VERSION := 3
+const SETTINGS_VERSION := 4
 
 
 func _ready() -> void:
@@ -37,6 +37,10 @@ func load_all() -> void:
 		show_keys = bool(cfg.get_value("misc", "show_keys", false))
 		if int(cfg.get_value("misc", "version", 1)) < 2:
 			# v1 defaulted to the turn-on-A/D scheme. The original scheme is the floor now.
+			scheme = "original"
+			bindings = {}
+		if int(cfg.get_value("misc", "version", 1)) < 4:
+			# v4: A/D turn and Q/E are gone. Old A/D-slide overrides would undo that.
 			scheme = "original"
 			bindings = {}
 		if int(cfg.get_value("misc", "version", 1)) < 3:

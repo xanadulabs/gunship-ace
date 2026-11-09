@@ -11,7 +11,7 @@ const CLIMB_SEC := 0.85              # one step of climb
 const MAX_SPEED := 9.5
 const DRAG := 2.0                    # MAX_SPEED * DRAG balances the drag, so a hold sits on the cap
 const SHOVE := 7.5                   # a tap is one shove
-const STILL_SPEED := 0.55            # under this she is still
+const STILL_SPEED := 1.5             # under this she is still: settling counts, so the wash comes on as she stops
 const YAW_RATE := 180.0              # degrees per second while Q or E is held
 const TILT_MAX := 12.0
 const TILT_LAG := 3.0
@@ -43,7 +43,8 @@ const LZ_RADIUS := 6.0
 const UNLOAD_SEC := 0.45
 
 # ------------------------------------------------------------------ wash
-const WASH_RADIUS := 7.0
+const WASH_RADIUS := 8.0
+const BRAKE_DIST := 6.0              # a vehicle stops rather than drive into a landed Hind
 const WASH_DECAY := 0.7
 const TIP_SEC := 0.45
 
@@ -110,11 +111,9 @@ const GOOD := Color(0.56, 0.74, 0.32, 1.0)
 # ------------------------------------------------------------------ the left plate
 const LINES: Array[String] = [
 	"W moves forward.",
-	"A moves left.",
 	"S moves back.",
-	"D moves right.",
-	"Q turns left.",
-	"E turns right.",
+	"A turns left.",
+	"D turns right.",
 	"R goes up.",
 	"F goes down.",
 	"Left click fires.",

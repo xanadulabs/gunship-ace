@@ -12,8 +12,9 @@ Design, with the original minimums at the top: [MODE_BIBLE.md](MODE_BIBLE.md). S
 
 | Action | Keys | Gamepad |
 |---|---|---|
-| Move forward / left / back / right | W A S D | Left stick |
-| Turn left / right | Q E | Right stick |
+| Move forward / back | W S | Left stick |
+| Turn left / right | A D | Right stick |
+| Slide left / right | unbound (set in Options) | Left stick |
 | Up / down one step | R F | RB / LB |
 | Chin gun | Left click (or Space) | A, RT |
 | Rockets | Right click (or K) | X, LT |
@@ -23,7 +24,7 @@ Design, with the original minimums at the top: [MODE_BIBLE.md](MODE_BIBLE.md). S
 | Show or hide the key list | F1 | |
 | Fullscreen | F11 | |
 
-These are the original design keys and they are the default. The arrow keys do not move her. Options has an alternate scheme (A/D turn, Q/E slide), and every key can be rebound.
+A and D turn. Q and E do nothing, and slide has no key unless you bind one. The arrow keys do not move her. Every key can be rebound in Options.
 
 ## Check and build
 

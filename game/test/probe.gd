@@ -99,7 +99,13 @@ static func _rules() -> void:
 	check(Rules.stop_line("tree") == "A tree stops the Hind." and Rules.end_line("landed") == "Landed.", "the stop and end sentences")
 	var drain := Rules.FUEL_START / Rules.FUEL_PER_SEC
 	check(drain >= 150.0 and drain <= 300.0, "a full tank lasts two and a half to five minutes")
-	check(Controls.key_name("thrust_fwd") == "W" and Controls.key_name("strafe_left") == "A" and Controls.key_name("turn_left") == "Q", "default keys: W forward, A left, Q turns")
+	check(Controls.key_name("thrust_fwd") == "W" and Controls.key_name("turn_left") == "A" and Controls.key_name("turn_right") == "D", "default keys: W forward, A and D turn")
+	var qe := false
+	for action in InputMap.get_actions():
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventKey and ev.physical_keycode in [KEY_Q, KEY_E]:
+				qe = true
+	check(not qe and Controls.key_name("strafe_left") == "-", "Q and E do nothing; slide has no key by default")
 	var arrows := false
 	for action in ["thrust_fwd", "thrust_back", "turn_left", "turn_right", "strafe_left", "strafe_right"]:
 		for ev in InputMap.action_get_events(action):
@@ -290,6 +296,28 @@ static func _sim(host: Node) -> void:
 		w.invincible = true
 		_step(w, 20.0)
 		check(w.phase == "play", "mission %d runs idle" % (i + 1))
+		w.queue_free()
+	await host.get_tree().process_frame
+
+	# Real play: chase a moving patrol jeep on the ground and let go 3, 5 or 7 m away.
+	# The Hind is heavy and the jeep keeps driving, so this is the case players hit.
+	for stop_at in [3.0, 5.0, 7.0]:
+		var w = _world(host, 0)
+		await host.get_tree().process_frame
+		w.invincible = true
+		var jeep = _unit(w, "jeep", "patrol")
+		w.hind.pos = Vector3(jeep.position.x + 14.0, w.hind.pos.y, jeep.position.z - 4.0)
+		var t := 0.0
+		while t < 10.0 and jeep.state == "alive":
+			var to: Vector3 = Rules.flat(jeep.position - w.hind.pos)
+			var wish := Vector2.ZERO
+			if to.length() > stop_at and t < 6.0:
+				var n := to.normalized()
+				wish = Vector2(n.dot(Rules.yaw_right(w.hind.yaw)), n.dot(Rules.yaw_forward(w.hind.yaw)))
+			w.autopilot = {"wish": wish}
+			_step(w, 0.25)
+			t += 0.25
+		check(jeep.state != "alive", "chase a driving jeep, let go %d m away: the wash flips it" % int(stop_at))
 		w.queue_free()
 	await host.get_tree().process_frame
 

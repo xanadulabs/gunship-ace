@@ -1,5 +1,5 @@
 extends PanelContainer
-## Options: volumes, display, control scheme and key rebinding. Emits closed.
+## Options: volumes, display and key rebinding. Emits closed.
 
 signal closed
 
@@ -41,15 +41,6 @@ func _ready() -> void:
 			Settings.apply_window())
 	_check(list, "Screen shake", Settings.shake, func(on: bool) -> void: Settings.shake = on)
 	list.add_child(UI.label("CONTROLS", 26, UI.ACCENT, true))
-	var scheme := OptionButton.new()
-	scheme.add_item("Original: A/D slide, Q/E turn")
-	scheme.add_item("Alternate: A/D turn, Q/E slide")
-	scheme.select(1 if Settings.scheme == "classic" else 0)
-	scheme.add_theme_font_size_override("font_size", 16)
-	scheme.item_selected.connect(func(i: int) -> void:
-		Controls.set_scheme("classic" if i == 1 else "original")
-		_refresh_keys())
-	list.add_child(scheme)
 	list.add_child(_wrap(UI.label("Click a key to change it, then press the new key or mouse button. Esc cancels.", 18, UI.DIM)))
 	for action in Controls.ACTIONS:
 		if action == "pause":

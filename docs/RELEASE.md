@@ -6,7 +6,7 @@
 tools/build.sh
 ```
 
-This produces `build/GunshipAce-1.2.0-linux.zip`, `-windows.zip` and `-web.zip`. The script stops if the probe fails, either on the project or inside the exported Linux binary. Store screenshots come from `~/bin/godot --path game -- --shots build/screenshots`.
+This produces `build/GunshipAce-1.3.0-linux.zip`, `-windows.zip` and `-web.zip`. The script stops if the probe fails, either on the project or inside the exported Linux binary. Store screenshots come from `~/bin/godot --path game -- --shots build/screenshots`.
 
 ## 2. Check by hand before uploading
 
@@ -25,9 +25,9 @@ These have not been checked by a person yet:
    * Pricing: free, or pay-what-you-want with a $0 minimum, for the first release. It buys feedback.
 2. Upload the zips by hand, or with butler:
    ```
-   butler push build/GunshipAce-1.2.0-linux.zip   <you>/gunship-ace:linux   --userversion 1.2.0
-   butler push build/GunshipAce-1.2.0-windows.zip <you>/gunship-ace:windows --userversion 1.2.0
-   butler push build/GunshipAce-1.2.0-web.zip     <you>/gunship-ace:html5   --userversion 1.2.0
+   butler push build/GunshipAce-1.3.0-linux.zip   <you>/gunship-ace:linux   --userversion 1.3.0
+   butler push build/GunshipAce-1.3.0-windows.zip <you>/gunship-ace:windows --userversion 1.3.0
+   butler push build/GunshipAce-1.3.0-web.zip     <you>/gunship-ace:html5   --userversion 1.3.0
    ```
 3. Page copy (draft):
 

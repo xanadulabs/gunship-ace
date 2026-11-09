@@ -1,4 +1,4 @@
-GUNSHIP ACE  v1.2.0
+GUNSHIP ACE  v1.3.0
 Fly low. Flip jeeps. Bring the crews home.
 
 A top-down attack-helicopter game. You fly a Mi-24 Hind across four missions:
@@ -7,8 +7,7 @@ militia command post. The Hind's rotor wash is a weapon: come down to the
 ground, hold still beside a jeep or a technical, and the downwash flips it.
 
 KEYS
-  W moves forward.     A moves left.     S moves back.     D moves right.
-  Q turns left.        E turns right.
+  W moves forward.     S moves back.     A turns left.     D turns right.
   R goes up.           F goes down.
   Left click fires.    Right click fires rockets.    Middle click fires a missile.
   Tab shows the map.   Esc pauses.   F1 shows the keys.   F11 fullscreen.

@@ -15,6 +15,8 @@
 
 **v1.2.0 (2026-11-08):** the plates are gone. One pixel font (Press Start 2P, OFL) everywhere with a heavy ink stroke, after SNES Desert Strike, Super Street Fighter II and Area 88. In a mission: a thin strip across the top (fuel bar, health blocks, height and wash, objective, ammo, lives, crew) and callouts that pop and fade. F1 shows the keys, hidden by default. Lato removed. The probe adds HUD checks and an on-screen layout check for every menu screen (257 checks).
 
+**v1.3.0 (2026-11-08):** A and D turn; Q and E are unbound and slide has no default key (the designer's call). The alternate scheme is gone. The wash now catches a driving jeep: still means under 1.5 m/s, the wash circle is 8 m, a vehicle stalls on first contact and brakes rather than drive into a landed Hind. The probe chases a driving jeep and lets go 3, 5 and 7 m away (261 checks).
+
 Design as built: [MODE_BIBLE.md](MODE_BIBLE.md). The review below is kept as written for the record.
 
 ---

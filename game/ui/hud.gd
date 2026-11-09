@@ -138,13 +138,18 @@ func _callouts() -> void:
 
 func _key_lines() -> Array[String]:
 	var k := func(a: String) -> String: return Controls.key_name(a)
-	return [
+	var lines: Array[String] = [
 		"%s moves forward." % k.call("thrust_fwd"),
-		"%s moves left." % k.call("strafe_left"),
 		"%s moves back." % k.call("thrust_back"),
-		"%s moves right." % k.call("strafe_right"),
 		"%s turns left." % k.call("turn_left"),
 		"%s turns right." % k.call("turn_right"),
+	]
+	# Slide has no key by default; name it only once someone binds one.
+	if k.call("strafe_left") != "-":
+		lines.append("%s moves left." % k.call("strafe_left"))
+	if k.call("strafe_right") != "-":
+		lines.append("%s moves right." % k.call("strafe_right"))
+	return lines + ([
 		"%s goes up." % k.call("climb"),
 		"%s goes down." % k.call("descend"),
 		"%s fires." % k.call("fire_gun"),
@@ -152,7 +157,7 @@ func _key_lines() -> Array[String]:
 		"%s fires a missile." % k.call("fire_atgm"),
 		"%s shows the map." % k.call("map"),
 		"%s hides the keys." % k.call("help"),
-	]
+	] as Array[String])
 
 
 func _keys() -> void:
@@ -164,7 +169,7 @@ func _keys() -> void:
 	_pin(v, Vector2(0, 1), Vector2(20, -400), Vector2(560, 380))
 	var lines := _key_lines()
 	for i in lines.size():
-		v.add_child(UI.pixel_label(lines[i].to_upper(), 16, WHITE if i < 9 else Color(0.8, 0.76, 0.66)))
+		v.add_child(UI.pixel_label(lines[i].to_upper(), 16, WHITE if i < lines.size() - 4 else Color(0.8, 0.76, 0.66)))
 	left = v
 
 

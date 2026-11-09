@@ -25,16 +25,17 @@ const LABELS := {
 }
 
 # Keyboard and mouse defaults. "k:" is a physical key, "m:" a mouse button.
-# The original scheme is the default: W moves forward, A moves left, S moves back, D moves right,
-# Q turns left, E turns right, R goes up, F goes down, left click fires.
+# W moves forward, S moves back, A turns left, D turns right, R goes up, F goes down,
+# left click fires. Slide has no key by default (the designer's call, v1.3: no Q and E);
+# it can be bound in Options, and the gamepad's left stick slides.
 # The arrow keys do not move her. Ctrl does not fire. The mouse does not turn her.
 const ORIGINAL := {
 	"thrust_fwd": ["k:W"],
 	"thrust_back": ["k:S"],
-	"turn_left": ["k:Q"],
-	"turn_right": ["k:E"],
-	"strafe_left": ["k:A"],
-	"strafe_right": ["k:D"],
+	"turn_left": ["k:A"],
+	"turn_right": ["k:D"],
+	"strafe_left": [],
+	"strafe_right": [],
 	"climb": ["k:R"],
 	"descend": ["k:F"],
 	"fire_gun": ["m:1", "k:Space"],
@@ -43,13 +44,6 @@ const ORIGINAL := {
 	"pause": ["k:Escape", "k:P"],
 	"map": ["k:Tab", "k:M"],
 	"help": ["k:F1"],
-}
-# Optional, chosen in Options: A and D turn, Q and E slide.
-const TURN_SWAP := {
-	"turn_left": ["k:A"],
-	"turn_right": ["k:D"],
-	"strafe_left": ["k:Q"],
-	"strafe_right": ["k:E"],
 }
 
 var _last_device := "keyboard"
@@ -88,18 +82,8 @@ func apply() -> void:
 
 
 func defaults_for(action: String, scheme: String) -> Array:
-	if scheme == "classic" and TURN_SWAP.has(action):
-		return TURN_SWAP[action]
 	return ORIGINAL[action]
 
-
-func set_scheme(scheme: String) -> void:
-	Settings.scheme = scheme
-	# A scheme change resets the keys it moves, so a stale override cannot hide it.
-	for action in TURN_SWAP.keys():
-		Settings.bindings.erase(action)
-	Settings.save_settings()
-	apply()
 
 
 func rebind(action: String, event: InputEvent) -> void:

@@ -150,8 +150,12 @@ func _drive(delta: float, world) -> void:
 		return
 	if path.size() < 2:
 		return
-	if tip > 0.2:
-		return  # A vehicle in the wash stalls; the driver is hanging on.
+	if tip > 0.0:
+		return  # A vehicle in the wash stalls at once; the driver is hanging on.
+	if world != null and world.hind.band == 0 and world.hind_targetable():
+		var ahead := Rules.flat(world.hind.pos - position)
+		if ahead.length() < Rules.BRAKE_DIST and ahead.normalized().dot(Rules.yaw_forward(heading)) > 0.3:
+			return  # A landed Hind blocks the road. The driver brakes instead of ramming her.
 	var target: Vector3 = path[way]
 	var to := Rules.flat(target - position)
 	if to.length() < 1.6:
